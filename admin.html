@@ -30,12 +30,12 @@
       <img src="logo.png" alt="St. Ann's College Logo" class="w-16 h-16 object-contain mx-auto drop-shadow-xs">
       <div>
         <h3 class="text-lg font-bold text-slate-900">Admin Authentication</h3>
-        <p class="text-xs text-slate-500">St. Ann's College Faculty Feedback Portal</p>
+        <p class="text-xs text-slate-500">Authorized Personnel Only</p>
       </div>
       <form onsubmit="event.preventDefault(); verifyAdminPassword();" class="space-y-3">
-        <input type="password" id="admin-pass-input" placeholder="Enter Admin Password (default: admin123)"
+        <input type="password" id="admin-pass-input" placeholder="Enter Admin Password"
           class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-center">
-        <div id="login-error" class="text-xs text-red-600 hidden">Incorrect password. Try again.</div>
+        <div id="login-error" class="text-xs text-red-600 hidden">Incorrect password. Access denied.</div>
         <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition">
           Unlock Dashboard
         </button>
