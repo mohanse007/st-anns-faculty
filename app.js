@@ -36,7 +36,6 @@ function populateEvaluatorDropdown() {
   // Group by category for clarity
   const teaching = allStaff.filter(s => s.category.includes('Teaching'));
   const office = allStaff.filter(s => s.category === 'Office Staff');
-  const nonTeaching = allStaff.filter(s => s.category === 'Non-Teaching');
   const other = allStaff.filter(s => s.category === 'Administration' || s.category === 'Add Course');
 
   let html = `<option value="">-- Choose Your Name from Staff List --</option>`;
@@ -53,14 +52,6 @@ function populateEvaluatorDropdown() {
   office.forEach(s => {
     html += `<option value="${s.sl_no}" data-name="${s.name}" data-category="${s.category}" data-stream="${s.stream_code}">
       #${s.sl_no} - ${s.name} (Office)
-    </option>`;
-  });
-  html += `</optgroup>`;
-
-  html += `<optgroup label="Non-Teaching Staff (${nonTeaching.length})">`;
-  nonTeaching.forEach(s => {
-    html += `<option value="${s.sl_no}" data-name="${s.name}" data-category="${s.category}" data-stream="${s.stream_code}">
-      #${s.sl_no} - ${s.name} (Non-Teaching)
     </option>`;
   });
   html += `</optgroup>`;

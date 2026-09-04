@@ -68,7 +68,7 @@ create table feedback (
     constraint unique_evaluator_faculty unique (evaluator_phone, faculty_id)
 );
 
--- 6. Insert All 91 Teaching, Office, and Non-Teaching Staff Members
+-- 6. Insert All 71 Teaching, Administration, Office, and Add Course Staff Members
 insert into faculty (sl_no, name, designation, category, stream_code, color) values
   (1, 'SR GIRSELA', 'CORRESPONDENT', 'Administration', 'ALL', 'ADMIN'),
   (2, 'SR JANICE', 'ANIMATOR, CONT.OF EXAMS', 'Administration', 'ALL', 'ADMIN'),
@@ -136,31 +136,11 @@ insert into faculty (sl_no, name, designation, category, stream_code, color) val
   (64, 'MRS D RAJESWARI', 'Office Staff', 'Office Staff', 'ALL', 'OFFICE'),
   (65, 'MR SRINU', 'Office Staff', 'Office Staff', 'ALL', 'OFFICE'),
   (66, 'MR MURALI', 'Office Staff', 'Office Staff', 'ALL', 'OFFICE'),
-  (67, 'MR K GOVINDA RAO', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (68, 'MR K SURYANARAYANA', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (69, 'MR CH GOVINDA RAO', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (70, 'MR CH VARAHALU', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (71, 'MR M DEVUDU', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (72, 'MR S V RAVI KUMAR', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (73, 'MR P VIJAYA LAKSHMI', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (74, 'MRS M SUSEELA', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (75, 'MR RAJASEKHAR', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (76, 'MR B AROGYAM', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (77, 'MRS SANTHI', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (78, 'MISS ANUSHA', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (79, 'MRS JYOTHI', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (80, 'MRS PADMA', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (81, 'MRS MARTHA', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (82, 'MRS VARALAKSHMI', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (83, 'MRS CHINNAMMULU', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (84, 'MRS S LAKSHMI', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (85, 'MRS MADHURI', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (86, 'MRS RAMA DEVI', 'Non-Teaching Staff', 'Non-Teaching', 'ALL', 'NON_TEACHING'),
-  (87, 'MRS SANGEETHA', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE'),
-  (88, 'MRS VENKATA LAXMI', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE'),
-  (89, 'MRS RASHMI', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE'),
-  (90, 'MR S MILIND', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE'),
-  (91, 'MD KHAIRUNNISHA BEGUM', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE');
+  (67, 'MRS SANGEETHA', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE'),
+  (68, 'MRS VENKATA LAXMI', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE'),
+  (69, 'MRS RASHMI', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE'),
+  (70, 'MR S MILIND', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE'),
+  (71, 'MD KHAIRUNNISHA BEGUM', 'Add Course Staff', 'Add Course', 'ALL', 'ADD_COURSE');
 
 -- 7. Configure Row Level Security (RLS)
 alter table faculty enable row level security;

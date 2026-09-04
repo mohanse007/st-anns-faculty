@@ -120,7 +120,7 @@ function applyFiltersAndRender() {
     } else if (currentFilterTab === "TEACHING") {
       if (!fac.category.includes('Teaching')) return false;
     } else if (currentFilterTab === "SUPPORT") {
-      if (fac.category !== 'Office Staff' && fac.category !== 'Non-Teaching') return false;
+      if (fac.category !== 'Office Staff') return false;
     }
     // Search filter
     if (searchQuery && !fac.name.toLowerCase().includes(searchQuery)) {

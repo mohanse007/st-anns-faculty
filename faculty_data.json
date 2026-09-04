@@ -529,166 +529,6 @@
   },
   {
     "sl_no": 67,
-    "name": "MR K GOVINDA RAO",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 68,
-    "name": "MR K SURYANARAYANA",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 69,
-    "name": "MR CH GOVINDA RAO",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 70,
-    "name": "MR CH VARAHALU",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 71,
-    "name": "MR M DEVUDU",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 72,
-    "name": "MR S V RAVI KUMAR",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 73,
-    "name": "MR P VIJAYA LAKSHMI",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 74,
-    "name": "MRS M SUSEELA",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 75,
-    "name": "MR RAJASEKHAR",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 76,
-    "name": "MR B AROGYAM",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 77,
-    "name": "MRS SANTHI",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 78,
-    "name": "MISS ANUSHA",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 79,
-    "name": "MRS JYOTHI",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 80,
-    "name": "MRS PADMA",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 81,
-    "name": "MRS MARTHA",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 82,
-    "name": "MRS VARALAKSHMI",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 83,
-    "name": "MRS CHINNAMMULU",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 84,
-    "name": "MRS S LAKSHMI",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 85,
-    "name": "MRS MADHURI",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 86,
-    "name": "MRS RAMA DEVI",
-    "designation": "Non-Teaching Staff",
-    "category": "Non-Teaching",
-    "stream_code": "ALL",
-    "color": "NON_TEACHING"
-  },
-  {
-    "sl_no": 87,
     "name": "MRS SANGEETHA",
     "designation": "Add Course Staff",
     "category": "Add Course",
@@ -696,7 +536,7 @@
     "color": "ADD_COURSE"
   },
   {
-    "sl_no": 88,
+    "sl_no": 68,
     "name": "MRS VENKATA LAXMI",
     "designation": "Add Course Staff",
     "category": "Add Course",
@@ -704,7 +544,7 @@
     "color": "ADD_COURSE"
   },
   {
-    "sl_no": 89,
+    "sl_no": 69,
     "name": "MRS RASHMI",
     "designation": "Add Course Staff",
     "category": "Add Course",
@@ -712,7 +552,7 @@
     "color": "ADD_COURSE"
   },
   {
-    "sl_no": 90,
+    "sl_no": 70,
     "name": "MR S MILIND",
     "designation": "Add Course Staff",
     "category": "Add Course",
@@ -720,7 +560,7 @@
     "color": "ADD_COURSE"
   },
   {
-    "sl_no": 91,
+    "sl_no": 71,
     "name": "MD KHAIRUNNISHA BEGUM",
     "designation": "Add Course Staff",
     "category": "Add Course",
