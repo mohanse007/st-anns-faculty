@@ -11,11 +11,8 @@ const APP_CONFIG = {
   adminPassword: "admin123", // Default admin password, change as desired
 
   // SUPABASE CREDENTIALS
-  // 1. Create a free project on https://supabase.com
-  // 2. Run the SQL from supabase_schema.sql in Supabase SQL Editor
-  // 3. Paste your Project URL and anon public key here:
-  supabaseUrl: "", // e.g. "https://xyzcompany.supabase.co"
-  supabaseAnonKey: "", // e.g. "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  supabaseUrl: "https://mxysrybxyoxlfdnvnspo.supabase.co",
+  supabaseAnonKey: "sb_publishable_At_lpGpyYCZaN7-Z72bm9Q_qHixUXY2",
 };
 
 // Check if credentials are set in localStorage as well (allows setting via UI)
