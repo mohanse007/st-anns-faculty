@@ -1,0 +1,9 @@
+.git
+.git/**
+.github/**
+*.py
+*.bat
+*.sql
+*.docx
+*.xlsx
+DEPLOYMENT_GUIDE.md
