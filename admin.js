@@ -103,6 +103,16 @@ function setTabFilter(tab) {
       el.className = "px-2.5 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 whitespace-nowrap";
     }
   });
+
+  const thRank = document.getElementById("th-rank");
+  if (thRank) {
+    if (tab === "DEGREE") thRank.textContent = "Degree Rank";
+    else if (tab === "INTER") thRank.textContent = "Inter Rank";
+    else if (tab === "TEACHING") thRank.textContent = "Teaching Rank";
+    else if (tab === "SUPPORT") thRank.textContent = "Office Rank";
+    else thRank.textContent = "Overall Rank";
+  }
+
   applyFiltersAndRender();
 }
 
@@ -144,11 +154,17 @@ function applyFiltersAndRender() {
   }
 
   tbody.innerHTML = filtered.map((fac, idx) => {
-    // Rank medal styling
-    let rankBadge = `<span class="font-bold text-slate-700">#${fac.rank}</span>`;
-    if (fac.rank === 1 && fac.total_evaluations > 0) rankBadge = `<span class="text-lg" title="Top Scorer">🥇</span>`;
-    else if (fac.rank === 2 && fac.total_evaluations > 0) rankBadge = `<span class="text-lg">🥈</span>`;
-    else if (fac.rank === 3 && fac.total_evaluations > 0) rankBadge = `<span class="text-lg">🥉</span>`;
+    // Wing Rank is idx + 1 within filtered view
+    const wingRank = idx + 1;
+    let rankBadge = `<span class="font-bold text-slate-700">#${wingRank}</span>`;
+    if (wingRank === 1 && fac.total_evaluations > 0) rankBadge = `<span class="font-bold text-amber-600" title="Top Scorer">🥇 #${wingRank}</span>`;
+    else if (wingRank === 2 && fac.total_evaluations > 0) rankBadge = `<span class="font-bold text-slate-500">🥈 #${wingRank}</span>`;
+    else if (wingRank === 3 && fac.total_evaluations > 0) rankBadge = `<span class="font-bold text-amber-800">🥉 #${wingRank}</span>`;
+
+    let subRank = "";
+    if (currentFilterTab !== "ALL") {
+      subRank = `<div class="text-[10px] text-slate-400 font-normal">Overall #${fac.rank}</div>`;
+    }
 
     // Category styling
     let catClass = "bg-slate-100 text-slate-700 border-slate-200";
@@ -160,8 +176,6 @@ function applyFiltersAndRender() {
       catClass = "bg-blue-50 text-blue-700 border-blue-200";
     } else if (fac.category === "Office Staff") {
       catClass = "bg-teal-50 text-teal-700 border-teal-200";
-    } else if (fac.category === "Non-Teaching") {
-      catClass = "bg-slate-100 text-slate-700 border-slate-300";
     } else if (fac.category === "Administration") {
       catClass = "bg-purple-50 text-purple-700 border-purple-200";
     } else if (fac.category === "Add Course") {
@@ -177,7 +191,7 @@ function applyFiltersAndRender() {
 
     return `
       <tr class="hover:bg-slate-50/80 transition">
-        <td class="py-3 px-4 text-center">${rankBadge}</td>
+        <td class="py-3 px-4 text-center whitespace-nowrap">${rankBadge}${subRank}</td>
         <td class="py-3 px-4 text-center font-mono text-slate-400">#${fac.sl_no}</td>
         <td class="py-3 px-4">
           <span class="font-bold text-slate-900 block">${fac.name}</span>
@@ -271,45 +285,104 @@ function printSingleReport() {
   window.location.reload();
 }
 
-// Export Leaderboard to Excel (.xlsx) using SheetJS
+// Export Multi-Sheet Master Workbook to Excel (.xlsx) using SheetJS
 function exportToExcel() {
   if (!currentLeaderboard || currentLeaderboard.length === 0) {
     alert("No data available to export.");
     return;
   }
 
-  const excelRows = currentLeaderboard.map(fac => ({
-    "Rank": fac.rank,
-    "Sl. No": fac.sl_no,
-    "Faculty Name": fac.name,
-    "Category": fac.category,
-    "Stream": fac.stream_code,
-    "Total Peer Reviews Received": fac.total_evaluations,
-    "Q1: Inspiring Personality (Avg/4)": fac.q1_avg,
-    "Q2: Pedagogical Excellence (Avg/4)": fac.q2_avg,
-    "Q3: Innovative Practices (Avg/4)": fac.q3_avg,
-    "Q4: Student Development (Avg/4)": fac.q4_avg,
-    "Q5: Professional Growth (Avg/4)": fac.q5_avg,
-    "Q6: Contribution to School (Avg/4)": fac.q6_avg,
-    "Q7: Loyalty & Integrity (Avg/4)": fac.q7_avg,
-    "Total Score Obtained (Avg/28)": fac.avg_score,
-    "Percentage Score (%)": fac.avg_percentage,
-    "Performance Grade": fac.grade
-  }));
-
-  const worksheet = XLSX.utils.json_to_sheet(excelRows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Leaderboard_2026_2027");
-
-  // Auto-size columns
+  // Auto-size column width definitions
   const colWidths = [
-    { wch: 6 }, { wch: 8 }, { wch: 32 }, { wch: 22 }, { wch: 10 },
-    { wch: 22 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 },
-    { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 16 }, { wch: 18 }
+    { wch: 14 }, // Wing Rank
+    { wch: 12 }, // Overall Rank
+    { wch: 8 },  // Staff Sl
+    { wch: 32 }, // Name
+    { wch: 26 }, // Category
+    { wch: 10 }, // Stream
+    { wch: 22 }, // Peer Reviews Received
+    { wch: 15 }, // Q1
+    { wch: 15 }, // Q2
+    { wch: 15 }, // Q3
+    { wch: 15 }, // Q4
+    { wch: 15 }, // Q5
+    { wch: 15 }, // Q6
+    { wch: 15 }, // Q7
+    { wch: 18 }, // Total Score /28
+    { wch: 15 }, // Percentage
+    { wch: 22 }  // Grade
   ];
-  worksheet["!cols"] = colWidths;
 
-  XLSX.writeFile(workbook, `St_Anns_Faculty_Peer_Appraisal_Leaderboard_${new Date().toISOString().slice(0,10)}.xlsx`);
+  // Helper function to build formatted rows for a sheet with sorted ranking
+  function buildSheetRows(staffList, rankHeader) {
+    const sorted = [...staffList].sort((a, b) => {
+      if (b.avg_score !== a.avg_score) return b.avg_score - a.avg_score;
+      return b.total_evaluations - a.total_evaluations;
+    });
+
+    return sorted.map((fac, idx) => ({
+      [rankHeader]: idx + 1,
+      "Overall Rank": fac.rank,
+      "Staff Sl": fac.sl_no,
+      "Faculty / Staff Name": fac.name,
+      "Category": fac.category,
+      "Stream": fac.stream_code,
+      "Peer Reviews Received": fac.total_evaluations,
+      "Q1: Inspiring Personality (Avg/4)": fac.q1_avg,
+      "Q2: Pedagogical Excellence (Avg/4)": fac.q2_avg,
+      "Q3: Innovative Practices (Avg/4)": fac.q3_avg,
+      "Q4: Student Development (Avg/4)": fac.q4_avg,
+      "Q5: Professional Growth (Avg/4)": fac.q5_avg,
+      "Q6: Contribution to College (Avg/4)": fac.q6_avg,
+      "Q7: Loyalty & Integrity (Avg/4)": fac.q7_avg,
+      "Total Score Obtained (Avg/28)": fac.avg_score,
+      "Percentage Score (%)": `${fac.avg_percentage}%`,
+      "Performance Grade": fac.grade
+    }));
+  }
+
+  const workbook = XLSX.utils.book_new();
+
+  // Sheet 1: Overall Leaderboard (All 71 Staff)
+  const allRows = buildSheetRows(currentLeaderboard, "Overall Rank");
+  const wsAll = XLSX.utils.json_to_sheet(allRows);
+  wsAll["!cols"] = colWidths;
+  XLSX.utils.book_append_sheet(workbook, wsAll, "All Staff Leaderboard");
+
+  // Sheet 2: Degree Wing Rank List (Degree & Common)
+  const degreeStaff = currentLeaderboard.filter(fac => 
+    fac.stream_code === 'DEGREE' || fac.stream_code === 'BOTH' || fac.stream_code === 'ALL'
+  );
+  const degreeRows = buildSheetRows(degreeStaff, "Degree Rank");
+  const wsDegree = XLSX.utils.json_to_sheet(degreeRows);
+  wsDegree["!cols"] = colWidths;
+  XLSX.utils.book_append_sheet(workbook, wsDegree, "Degree Rank List");
+
+  // Sheet 3: Intermediate Wing Rank List (Inter & Common)
+  const interStaff = currentLeaderboard.filter(fac => 
+    fac.stream_code === 'INTER' || fac.stream_code === 'BOTH' || fac.stream_code === 'ALL'
+  );
+  const interRows = buildSheetRows(interStaff, "Inter Rank");
+  const wsInter = XLSX.utils.json_to_sheet(interRows);
+  wsInter["!cols"] = colWidths;
+  XLSX.utils.book_append_sheet(workbook, wsInter, "Inter Rank List");
+
+  // Sheet 4: Teaching Faculty Rank List (Teaching Staff only)
+  const teachingStaff = currentLeaderboard.filter(fac => fac.category.includes('Teaching'));
+  const teachingRows = buildSheetRows(teachingStaff, "Teaching Rank");
+  const wsTeaching = XLSX.utils.json_to_sheet(teachingRows);
+  wsTeaching["!cols"] = colWidths;
+  XLSX.utils.book_append_sheet(workbook, wsTeaching, "Teaching Faculty Rank");
+
+  // Sheet 5: Office Staff Rank List
+  const officeStaff = currentLeaderboard.filter(fac => fac.category === 'Office Staff');
+  const officeRows = buildSheetRows(officeStaff, "Office Rank");
+  const wsOffice = XLSX.utils.json_to_sheet(officeRows);
+  wsOffice["!cols"] = colWidths;
+  XLSX.utils.book_append_sheet(workbook, wsOffice, "Office Staff Rank");
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(workbook, `St_Anns_Faculty_Peer_Appraisal_Master_Workbook_${todayStr}.xlsx`);
 }
 
 // Demo Data Generator (Generates sample peer reviews by faculty)
