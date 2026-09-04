@@ -4,7 +4,7 @@
 // ================================================================
 
 const APP_CONFIG = {
-  collegeName: "ST. ANN'S COLLEGE FOR WOMEN",
+  collegeName: "ST. ANN'S COLLEGE FOR WOMEN (A)",
   collegeAddress: "Malkapuram, Visakhapatnam - 530011",
   academicYear: "2026-2027",
   systemTitle: "Faculty Performance Evaluation System",
