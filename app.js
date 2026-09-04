@@ -476,7 +476,7 @@ async function submitFinalFeedback() {
   }
 
   submitBtn.disabled = true;
-  submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Submitting Peer Appraisal...`;
+  submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Submitting Feedback...`;
 
   // Build payload
   const evaluations = activeIds.map(id => {
@@ -516,6 +516,6 @@ async function submitFinalFeedback() {
   } catch (err) {
     alert("Submission Error: " + err.message);
     submitBtn.disabled = false;
-    submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-[11px]"></i> <span>Submit Peer Appraisal</span>`;
+    submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-[11px]"></i> <span>Submit Feedback</span>`;
   }
 }
