@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty Peer Performance Appraisal | St. Ann's College for Women</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- Header -->
+  <header class="glass-nav border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-700 to-violet-600 text-white flex items-center justify-center shadow-md font-bold text-lg">
+          SA
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">ST. ANN'S COLLEGE FOR WOMEN</h1>
+          <p class="text-xs text-slate-500">Malkapuram, Visakhapatnam • Faculty Peer Appraisal 2026-2027</p>
+        </div>
+      </div>
+      <a href="admin.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition flex items-center space-x-1">
+        <i class="fa-solid fa-lock text-[10px]"></i>
+        <span>Admin</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-6 sm:py-8">
+
+    <!-- STEP 1: Faculty Particulars Form -->
+    <section id="step-faculty-info" class="space-y-6">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="border-b border-slate-100 pb-4 mb-6">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 mb-2">
+            Step 1 of 2
+          </span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Evaluating Faculty Particulars</h2>
+          <p class="text-sm text-slate-500 mt-1">Please identify yourself as the evaluating faculty member. All peer feedback ratings are confidential.</p>
+        </div>
+
+        <form id="faculty-evaluator-form" class="space-y-5" onsubmit="event.preventDefault(); goToStep2();">
+          
+          <!-- Faculty Name (Dropdown or Search) -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Select Your Name (Evaluating Faculty) *</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-chalkboard-user"></i></span>
+              <select id="fac-evaluator-select" required onchange="onEvaluatorSelected()"
+                class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition bg-white">
+                <option value="">-- Choose Your Name from Teaching Staff List --</option>
+                <!-- Populated dynamically with all 55 faculty -->
+              </select>
+            </div>
+          </div>
+
+          <!-- Staff Phone Number & Manual Department Entry -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Staff Mobile Phone Number *</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-phone"></i></span>
+                <input type="tel" id="fac-phone" required placeholder="e.g. 9848012345 (10 digits)" maxlength="10" pattern="[0-9]{10}"
+                  class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition bg-slate-50/50 font-mono">
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Used to verify genuine appraisal & prevent duplicate entries.</p>
+            </div>
+
+            <!-- Department / Subject (Manual Entry) -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Department / Subject (Enter Manually) *</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-building-columns"></i></span>
+                <input type="text" id="fac-dept-group" list="dept-suggestions" required placeholder="e.g. Computer Science, Chemistry, Office, etc."
+                  class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none bg-white">
+                <datalist id="dept-suggestions">
+                  <option value="BSC COMPUTER SCIENCE">
+                  <option value="BSC CHEMISTRY">
+                  <option value="BSC BOTANY">
+                  <option value="BSC MATHEMATICS">
+                  <option value="BSC MICROBIOLOGY">
+                  <option value="BSC PHYSICS">
+                  <option value="BSC ZOOLOGY">
+                  <option value="B.COM COMPUTER APPLICATION">
+                  <option value="BA SPECIAL ENGLISH">
+                  <option value="BBA">
+                  <option value="BCA">
+                  <option value="BSc Agriculture and Rural Development">
+                  <option value="Intermediate MPC">
+                  <option value="Intermediate BiPC">
+                  <option value="Intermediate CEC">
+                  <option value="Intermediate MEC">
+                  <option value="Office Administration">
+                  <option value="Examination & Accounts">
+                  <option value="Non-Teaching & Support Staff">
+                </datalist>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Type manually or pick from suggestions above.</p>
+            </div>
+          </div>
+
+          <!-- Stream Selection (Inter vs Degree vs Both) -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Your College Wing / Stream *</label>
+            <div class="grid grid-cols-3 gap-3">
+              <label class="stream-card cursor-pointer">
+                <input type="radio" name="fac-stream" value="Degree" checked class="peer sr-only" onchange="onStreamChange()">
+                <div class="p-3.5 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/60 transition text-center flex flex-col items-center justify-center space-y-1">
+                  <i class="fa-solid fa-graduation-cap text-xl text-slate-400 peer-checked:text-indigo-600"></i>
+                  <span class="font-bold text-xs sm:text-sm text-slate-800">Degree Staff</span>
+                  <span class="text-[10px] text-slate-500">Degree College</span>
+                </div>
+              </label>
+
+              <label class="stream-card cursor-pointer">
+                <input type="radio" name="fac-stream" value="Intermediate" class="peer sr-only" onchange="onStreamChange()">
+                <div class="p-3.5 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/60 transition text-center flex flex-col items-center justify-center space-y-1">
+                  <i class="fa-solid fa-school text-xl text-slate-400 peer-checked:text-indigo-600"></i>
+                  <span class="font-bold text-xs sm:text-sm text-slate-800">Intermediate</span>
+                  <span class="text-[10px] text-slate-500">Junior & Senior Inter</span>
+                </div>
+              </label>
+
+              <label class="stream-card cursor-pointer">
+                <input type="radio" name="fac-stream" value="Both" class="peer sr-only" onchange="onStreamChange()">
+                <div class="p-3.5 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/60 transition text-center flex flex-col items-center justify-center space-y-1">
+                  <i class="fa-solid fa-arrows-split-up-and-left text-xl text-slate-400 peer-checked:text-indigo-600"></i>
+                  <span class="font-bold text-xs sm:text-sm text-slate-800">Both Wings</span>
+                  <span class="text-[10px] text-slate-500">Inter & Degree</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Error Alert -->
+          <div id="step1-error" class="hidden p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center space-x-2">
+            <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
+            <span id="step1-error-text">Please fill all fields accurately.</span>
+          </div>
+
+          <!-- Next Button -->
+          <div class="pt-3">
+            <button type="submit" id="btn-next-step"
+              class="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-sm shadow-md shadow-indigo-200 transition flex items-center justify-center space-x-2">
+              <span>Proceed to Colleague / Peer Feedback</span>
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Instructions Card -->
+      <div class="bg-indigo-50/50 rounded-2xl p-5 border border-indigo-100 text-xs text-indigo-900 space-y-2">
+        <h4 class="font-bold flex items-center space-x-2">
+          <i class="fa-solid fa-circle-info text-indigo-600"></i>
+          <span>Peer Faculty Evaluation Guidelines (7 Core Criteria)</span>
+        </h4>
+        <p class="text-indigo-800 leading-relaxed">
+          Evaluate fellow faculty members objectively across the 7 criteria. Each question has 3 rating options:
+        </p>
+        <div class="grid grid-cols-3 gap-2 pt-1 font-medium text-center">
+          <div class="bg-white p-2 rounded-lg border border-indigo-200 shadow-2xs">
+            <span class="block text-emerald-600 font-bold">🌟 Excellent</span>
+            <span class="text-[11px] text-slate-500">4 Marks</span>
+          </div>
+          <div class="bg-white p-2 rounded-lg border border-indigo-200 shadow-2xs">
+            <span class="block text-blue-600 font-bold">👍 Good</span>
+            <span class="text-[11px] text-slate-500">3 Marks</span>
+          </div>
+          <div class="bg-white p-2 rounded-lg border border-indigo-200 shadow-2xs">
+            <span class="block text-amber-600 font-bold">🆗 Satisfactory</span>
+            <span class="text-[11px] text-slate-500">2 Marks</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: Peer Faculty Evaluation List -->
+    <section id="step-faculty-eval" class="hidden space-y-6">
+
+      <!-- Faculty Evaluator Banner -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+            <i class="fa-solid fa-user-tie"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span id="display-fac-name" class="font-bold text-slate-900 text-sm">Faculty Evaluator</span>
+              <span id="display-fac-id" class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">STAFF-ID</span>
+            </div>
+            <p id="display-fac-dept" class="text-xs text-slate-500">Degree Wing • BSC COMPUTER SCIENCE</p>
+          </div>
+        </div>
+
+        <button onclick="backToStep1()" class="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center space-x-1">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>Change Evaluator</span>
+        </button>
+      </div>
+
+      <!-- Filter / Instructions Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Select Colleagues & Rate Performance</h3>
+          <p class="text-xs text-slate-500">Select peer faculty members you wish to evaluate across the 7 criteria. (Self-evaluation is automatically excluded).</p>
+        </div>
+        <div class="relative min-w-[220px]">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs"><i class="fa-solid fa-search"></i></span>
+          <input type="text" id="faculty-search" oninput="filterFacultyCards()" placeholder="Search colleague name..."
+            class="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+      </div>
+
+      <!-- Faculty Cards Container -->
+      <div id="faculty-cards-container" class="space-y-4">
+        <!-- Dynamically injected colleague evaluation cards -->
+      </div>
+
+      <!-- Bottom Submission Floating Bar -->
+      <div class="sticky bottom-4 z-20">
+        <div class="bg-slate-900/95 backdrop-blur text-white p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-700">
+          <div class="flex items-center space-x-3 text-xs w-full sm:w-auto justify-between sm:justify-start">
+            <div>
+              <span class="text-slate-400">Colleagues Evaluated:</span>
+              <span id="eval-progress-count" class="font-bold text-emerald-400 text-sm ml-1">0</span>
+              <span id="eval-total-count" class="text-slate-400 text-xs">/ 0 Faculty</span>
+            </div>
+            <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
+            <div id="eval-status-msg" class="text-slate-300 text-[11px]">Please rate at least 1 colleague to submit</div>
+          </div>
+
+          <button id="btn-submit-feedback" onclick="submitFinalFeedback()"
+            class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-paper-plane text-[11px]"></i>
+            <span>Submit Peer Appraisal</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: Submission Confirmation Modal -->
+    <div id="modal-success" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 hidden">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center space-y-4 border border-slate-100">
+        <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mx-auto shadow-inner">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-900">Peer Appraisal Submitted!</h3>
+          <p class="text-xs text-slate-500 mt-1">Thank you for participating in the annual faculty appraisal process.</p>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 text-left text-xs space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Evaluating Faculty:</span>
+            <span id="conf-name" class="font-bold text-slate-800">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Staff Sl/ID:</span>
+            <span id="conf-roll" class="font-mono font-bold text-slate-800">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Colleagues Evaluated:</span>
+            <span id="conf-count" class="font-bold text-emerald-600">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Submission Time:</span>
+            <span id="conf-time" class="text-slate-600">-</span>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="window.location.reload()"
+            class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition">
+            Close & Finish
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+    <p>&copy; 2026-2027 St. Ann's College for Women, Malkapuram. Internal Quality Assurance Cell (IQAC).</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="faculty_data.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
