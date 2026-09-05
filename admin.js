@@ -94,7 +94,7 @@ async function loadDashboardData() {
 // Filter Tabs
 function setTabFilter(tab) {
   currentFilterTab = tab;
-  ["ALL", "DEGREE", "INTER", "TEACHING", "SUPPORT"].forEach(t => {
+  ["ALL", "DEGREE", "INTER"].forEach(t => {
     const el = document.getElementById("tab-" + t);
     if (!el) return;
     if (t === tab) {
@@ -108,8 +108,6 @@ function setTabFilter(tab) {
   if (thRank) {
     if (tab === "DEGREE") thRank.textContent = "Degree Rank";
     else if (tab === "INTER") thRank.textContent = "Inter Rank";
-    else if (tab === "TEACHING") thRank.textContent = "Teaching Rank";
-    else if (tab === "SUPPORT") thRank.textContent = "Office Rank";
     else thRank.textContent = "Overall Rank";
   }
 
@@ -122,15 +120,11 @@ function applyFiltersAndRender() {
   const tbody = document.getElementById("leaderboard-tbody");
 
   let filtered = currentLeaderboard.filter(fac => {
-    // Stream / category filter
+    // Stream filter
     if (currentFilterTab === "DEGREE") {
-      if (fac.stream_code !== 'DEGREE' && fac.stream_code !== 'BOTH' && fac.stream_code !== 'ALL') return false;
+      if (fac.stream_code !== 'DEGREE' && fac.stream_code !== 'BOTH') return false;
     } else if (currentFilterTab === "INTER") {
-      if (fac.stream_code !== 'INTER' && fac.stream_code !== 'BOTH' && fac.stream_code !== 'ALL') return false;
-    } else if (currentFilterTab === "TEACHING") {
-      if (!fac.category.includes('Teaching')) return false;
-    } else if (currentFilterTab === "SUPPORT") {
-      if (fac.category !== 'Office Staff') return false;
+      if (fac.stream_code !== 'INTER' && fac.stream_code !== 'BOTH') return false;
     }
     // Search filter
     if (searchQuery && !fac.name.toLowerCase().includes(searchQuery)) {
@@ -343,46 +337,32 @@ function exportToExcel() {
 
   const workbook = XLSX.utils.book_new();
 
-  // Sheet 1: Overall Leaderboard (All 71 Staff)
+  // Sheet 1: Overall Teaching Faculty Leaderboard (All 55 Teaching Faculty)
   const allRows = buildSheetRows(currentLeaderboard, "Overall Rank");
   const wsAll = XLSX.utils.json_to_sheet(allRows);
   wsAll["!cols"] = colWidths;
-  XLSX.utils.book_append_sheet(workbook, wsAll, "All Staff Leaderboard");
+  XLSX.utils.book_append_sheet(workbook, wsAll, "All Teaching Faculty (55)");
 
-  // Sheet 2: Degree Wing Rank List (Degree & Common)
+  // Sheet 2: Degree Wing Rank List (Degree & Both Teaching Faculty - 38)
   const degreeStaff = currentLeaderboard.filter(fac => 
-    fac.stream_code === 'DEGREE' || fac.stream_code === 'BOTH' || fac.stream_code === 'ALL'
+    fac.stream_code === 'DEGREE' || fac.stream_code === 'BOTH'
   );
   const degreeRows = buildSheetRows(degreeStaff, "Degree Rank");
   const wsDegree = XLSX.utils.json_to_sheet(degreeRows);
   wsDegree["!cols"] = colWidths;
-  XLSX.utils.book_append_sheet(workbook, wsDegree, "Degree Rank List");
+  XLSX.utils.book_append_sheet(workbook, wsDegree, "Degree Wing Rank List (38)");
 
-  // Sheet 3: Intermediate Wing Rank List (Inter & Common)
+  // Sheet 3: Intermediate Wing Rank List (Inter & Both Teaching Faculty - 23)
   const interStaff = currentLeaderboard.filter(fac => 
-    fac.stream_code === 'INTER' || fac.stream_code === 'BOTH' || fac.stream_code === 'ALL'
+    fac.stream_code === 'INTER' || fac.stream_code === 'BOTH'
   );
   const interRows = buildSheetRows(interStaff, "Inter Rank");
   const wsInter = XLSX.utils.json_to_sheet(interRows);
   wsInter["!cols"] = colWidths;
-  XLSX.utils.book_append_sheet(workbook, wsInter, "Inter Rank List");
-
-  // Sheet 4: Teaching Faculty Rank List (Teaching Staff only)
-  const teachingStaff = currentLeaderboard.filter(fac => fac.category.includes('Teaching'));
-  const teachingRows = buildSheetRows(teachingStaff, "Teaching Rank");
-  const wsTeaching = XLSX.utils.json_to_sheet(teachingRows);
-  wsTeaching["!cols"] = colWidths;
-  XLSX.utils.book_append_sheet(workbook, wsTeaching, "Teaching Faculty Rank");
-
-  // Sheet 5: Office Staff Rank List
-  const officeStaff = currentLeaderboard.filter(fac => fac.category === 'Office Staff');
-  const officeRows = buildSheetRows(officeStaff, "Office Rank");
-  const wsOffice = XLSX.utils.json_to_sheet(officeRows);
-  wsOffice["!cols"] = colWidths;
-  XLSX.utils.book_append_sheet(workbook, wsOffice, "Office Staff Rank");
+  XLSX.utils.book_append_sheet(workbook, wsInter, "Inter Wing Rank List (23)");
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(workbook, `St_Anns_Faculty_Peer_Appraisal_Master_Workbook_${todayStr}.xlsx`);
+  XLSX.writeFile(workbook, `St_Anns_Teaching_Faculty_Appraisal_Workbook_${todayStr}.xlsx`);
 }
 
 // Demo Data Generator (Generates sample peer reviews by faculty)

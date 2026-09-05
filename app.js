@@ -33,34 +33,33 @@ function populateEvaluatorDropdown() {
   const select = document.getElementById("fac-evaluator-select");
   if (!select) return;
 
-  // Group by category for clarity
-  const teaching = allStaff.filter(s => s.category.includes('Teaching'));
-  const office = allStaff.filter(s => s.category === 'Office Staff');
-  const other = allStaff.filter(s => s.category === 'Administration' || s.category === 'Add Course');
+  const degree = allStaff.filter(s => s.category === 'Degree Teaching');
+  const inter = allStaff.filter(s => s.category === 'Intermediate Teaching');
+  const both = allStaff.filter(s => s.category.includes('Both'));
 
-  let html = `<option value="">-- Choose Your Name from Staff List --</option>`;
+  let html = `<option value="">-- Choose Your Name from Teaching Faculty List (55) --</option>`;
 
-  html += `<optgroup label="Teaching Faculty (${teaching.length})">`;
-  teaching.forEach(s => {
+  html += `<optgroup label="Degree Teaching Faculty (${degree.length})">`;
+  degree.forEach(s => {
     html += `<option value="${s.sl_no}" data-name="${s.name}" data-category="${s.category}" data-stream="${s.stream_code}">
-      #${s.sl_no} - ${s.name} (${s.category})
+      #${s.sl_no} - ${s.name} (Degree)
     </option>`;
   });
   html += `</optgroup>`;
 
-  html += `<optgroup label="Office Staff (${office.length})">`;
-  office.forEach(s => {
+  html += `<optgroup label="Intermediate Teaching Faculty (${inter.length})">`;
+  inter.forEach(s => {
     html += `<option value="${s.sl_no}" data-name="${s.name}" data-category="${s.category}" data-stream="${s.stream_code}">
-      #${s.sl_no} - ${s.name} (Office)
+      #${s.sl_no} - ${s.name} (Inter)
     </option>`;
   });
   html += `</optgroup>`;
 
-  if (other.length > 0) {
-    html += `<optgroup label="Administration & Add Course (${other.length})">`;
-    other.forEach(s => {
+  if (both.length > 0) {
+    html += `<optgroup label="Both Wings Teaching Faculty (${both.length})">`;
+    both.forEach(s => {
       html += `<option value="${s.sl_no}" data-name="${s.name}" data-category="${s.category}" data-stream="${s.stream_code}">
-        #${s.sl_no} - ${s.name} (${s.category})
+        #${s.sl_no} - ${s.name} (Both)
       </option>`;
     });
     html += `</optgroup>`;
@@ -167,19 +166,19 @@ async function goToStep2() {
 
   // Filter Colleagues:
   // 1. MUST EXCLUDE SELF (evaluator cannot rate herself/himself)
-  // 2. If evaluator is Degree: shows Degree Teaching + Both Teaching + All Non-Teaching + All Office Staff + Admin/Add Course
-  // 3. If evaluator is Inter: shows Inter Teaching + Both Teaching + All Non-Teaching + All Office Staff + Admin/Add Course
-  // 4. If evaluator is Both: shows all staff
+  // 2. Degree Evaluator: sees Degree Teaching (32) + Both Teaching (6) = 38 colleagues (37 excluding self)
+  // 3. Intermediate Evaluator: sees Intermediate Teaching (17) + Both Teaching (6) = 23 colleagues (22 excluding self)
+  // 4. Both Wings Evaluator: sees all 55 colleagues (54 excluding self)
   eligibleColleagues = allStaff.filter(s => {
     // Exclude self
     if (s.sl_no === evaluatorSl) return false;
 
     if (currentEvaluator.stream === "Degree") {
-      return s.stream_code === 'DEGREE' || s.stream_code === 'BOTH' || s.stream_code === 'ALL';
+      return s.stream_code === 'DEGREE' || s.stream_code === 'BOTH';
     } else if (currentEvaluator.stream === "Intermediate") {
-      return s.stream_code === 'INTER' || s.stream_code === 'BOTH' || s.stream_code === 'ALL';
+      return s.stream_code === 'INTER' || s.stream_code === 'BOTH';
     }
-    return true; // Both sees everyone
+    return true; // Both sees all teaching colleagues
   });
 
   // Reset evaluations & active selections
