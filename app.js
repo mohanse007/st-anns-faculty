@@ -214,53 +214,52 @@ function renderFacultyCards(searchFilter = "") {
     f.name.toLowerCase().includes(searchFilter.toLowerCase())
   );
 
-  // Category sub-filtering
-  if (currentCategoryFilter === "TEACHING") {
-    filtered = filtered.filter(f => f.category.includes('Teaching'));
-  } else if (currentCategoryFilter === "OFFICE") {
-    filtered = filtered.filter(f => f.category === 'Office Staff');
-  } else if (currentCategoryFilter === "NON_TEACHING") {
-    filtered = filtered.filter(f => f.category === 'Non-Teaching');
-  } else if (currentCategoryFilter === "ADMIN") {
-    filtered = filtered.filter(f => f.category === 'Administration' || f.category === 'Add Course');
+  // Wing sub-filtering
+  if (currentCategoryFilter === "DEGREE") {
+    filtered = filtered.filter(f => f.stream_code === 'DEGREE' || f.category.includes('Degree'));
+  } else if (currentCategoryFilter === "INTER") {
+    filtered = filtered.filter(f => f.stream_code === 'INTER' || f.category.includes('Intermediate'));
   }
 
-  // Build filter pills at top
-  const teachingCount = eligibleColleagues.filter(f => f.category.includes('Teaching')).length;
-  const officeCount = eligibleColleagues.filter(f => f.category === 'Office Staff').length;
-  const nonTeachingCount = eligibleColleagues.filter(f => f.category === 'Non-Teaching').length;
-  const otherCount = eligibleColleagues.filter(f => f.category === 'Administration' || f.category === 'Add Course').length;
+  // Wing counts for available colleagues
+  const degreeCount = eligibleColleagues.filter(f => f.stream_code === 'DEGREE' || f.stream_code === 'BOTH').length;
+  const interCount = eligibleColleagues.filter(f => f.stream_code === 'INTER' || f.stream_code === 'BOTH').length;
 
-  let filterBarHtml = `
-    <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 text-xs font-semibold no-scrollbar">
-      <button onclick="setColleagueCategory('ALL')"
-        class="px-3 py-1.5 rounded-xl border transition ${currentCategoryFilter === 'ALL' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-        All Applicable (${eligibleColleagues.length})
-      </button>
-      <button onclick="setColleagueCategory('TEACHING')"
-        class="px-3 py-1.5 rounded-xl border transition ${currentCategoryFilter === 'TEACHING' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-        Teaching (${teachingCount})
-      </button>
-      <button onclick="setColleagueCategory('OFFICE')"
-        class="px-3 py-1.5 rounded-xl border transition ${currentCategoryFilter === 'OFFICE' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-        Office (${officeCount})
-      </button>
-      <button onclick="setColleagueCategory('NON_TEACHING')"
-        class="px-3 py-1.5 rounded-xl border transition ${currentCategoryFilter === 'NON_TEACHING' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-        Non-Teaching (${nonTeachingCount})
-      </button>
-      <button onclick="setColleagueCategory('ADMIN')"
-        class="px-3 py-1.5 rounded-xl border transition ${currentCategoryFilter === 'ADMIN' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-        Admin & Add Course (${otherCount})
-      </button>
-    </div>
-  `;
+  let filterBarHtml = "";
+  // If evaluator selected Both Wings (or has both Degree and Inter colleagues), show clean wing pills
+  if (currentEvaluator.stream === "Both" || (degreeCount > 0 && interCount > 0 && degreeCount !== eligibleColleagues.length)) {
+    filterBarHtml = `
+      <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 text-xs font-semibold no-scrollbar">
+        <button onclick="setColleagueCategory('ALL')"
+          class="px-3 py-1.5 rounded-xl border transition ${currentCategoryFilter === 'ALL' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+          All Faculty (${eligibleColleagues.length})
+        </button>
+        <button onclick="setColleagueCategory('DEGREE')"
+          class="px-3 py-1.5 rounded-xl border transition ${currentCategoryFilter === 'DEGREE' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+          🟡 Degree Wing (${degreeCount})
+        </button>
+        <button onclick="setColleagueCategory('INTER')"
+          class="px-3 py-1.5 rounded-xl border transition ${currentCategoryFilter === 'INTER' ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+          ⚪ Inter Wing (${interCount})
+        </button>
+      </div>
+    `;
+  } else {
+    filterBarHtml = `
+      <div class="flex items-center space-x-1.5 pb-1 text-xs font-semibold">
+        <span class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center space-x-1.5">
+          <i class="fa-solid fa-users"></i>
+          <span>${currentEvaluator.stream} Wing Faculty (${eligibleColleagues.length} Available Colleagues)</span>
+        </span>
+      </div>
+    `;
+  }
 
   if (filtered.length === 0) {
     container.innerHTML = filterBarHtml + `
       <div class="bg-white p-8 rounded-2xl text-center border border-slate-200 text-slate-400 mt-3">
         <i class="fa-regular fa-folder-open text-3xl mb-2"></i>
-        <p class="text-sm font-semibold">No staff members found matching criteria.</p>
+        <p class="text-sm font-semibold">No faculty members found matching criteria.</p>
       </div>
     `;
     return;
@@ -276,20 +275,12 @@ function renderFacultyCards(searchFilter = "") {
 
     // Badge styling
     let badgeClass = "bg-slate-100 text-slate-700 border-slate-200";
-    if (fac.category.includes("Degree Teaching")) {
+    if (fac.category.includes("Degree Teaching") || fac.stream_code === "DEGREE") {
       badgeClass = "bg-indigo-50 text-indigo-700 border-indigo-200";
-    } else if (fac.category.includes("Intermediate Teaching")) {
+    } else if (fac.category.includes("Intermediate Teaching") || fac.stream_code === "INTER") {
       badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
-    } else if (fac.category.includes("Both")) {
+    } else if (fac.category.includes("Both") || fac.stream_code === "BOTH") {
       badgeClass = "bg-blue-50 text-blue-700 border-blue-200";
-    } else if (fac.category === "Office Staff") {
-      badgeClass = "bg-teal-50 text-teal-700 border-teal-200";
-    } else if (fac.category === "Non-Teaching") {
-      badgeClass = "bg-slate-100 text-slate-700 border-slate-300";
-    } else if (fac.category === "Administration") {
-      badgeClass = "bg-purple-50 text-purple-700 border-purple-200";
-    } else if (fac.category === "Add Course") {
-      badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
     }
 
     return `
