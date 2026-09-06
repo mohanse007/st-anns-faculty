@@ -259,20 +259,44 @@ const DataProvider = {
     return { success: true, count: evaluations.length, mode: 'local' };
   },
 
-  // Get aggregated Leaderboard for Admin
-  async getLeaderboard() {
+  // Get aggregated Leaderboard for Admin with optional source filter ('ALL', 'MANAGEMENT', 'PEER')
+  async getLeaderboard(sourceFilter = "ALL") {
     const rawList = await this.getFacultyList();
     const facultyList = rawList.filter(f => f.category !== 'Management' && f.stream_code !== 'MANAGEMENT');
 
     let allFeedback = [];
+    let evaluators = [];
     if (this.isCloud()) {
       const { data, error } = await supabaseClient
         .from('feedback')
         .select('*');
       if (!error && data) allFeedback = data;
+
+      const { data: evals } = await supabaseClient
+        .from('evaluators')
+        .select('phone_number, stream, department, name');
+      if (evals) evaluators = evals;
     } else {
       allFeedback = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]');
+      evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]');
     }
+
+    // Set of Management phone numbers / identifiers
+    const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
+    const isMgmtSister = (e) => {
+      if (!e) return false;
+      if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
+      const n = (e.name || '').toUpperCase().trim();
+      if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
+      return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
+    };
+
+    const mgmtPhones = new Set();
+    evaluators.forEach(e => {
+      if (isMgmtSister(e)) {
+        mgmtPhones.add(e.phone_number);
+      }
+    });
 
     // Aggregate by faculty
     const facultyMap = {};
@@ -292,22 +316,44 @@ const DataProvider = {
         q5_total: 0,
         q6_total: 0,
         q7_total: 0,
-        total_score_sum: 0
+        total_score_sum: 0,
+        // Separate counters for Management and Peer
+        mgmt_evaluations: 0,
+        mgmt_score_sum: 0,
+        peer_evaluations: 0,
+        peer_score_sum: 0
       };
     });
 
     allFeedback.forEach(fb => {
       const target = facultyMap[fb.faculty_id];
       if (target) {
-        target.total_evaluations += 1;
-        target.q1_total += fb.q1;
-        target.q2_total += fb.q2;
-        target.q3_total += fb.q3;
-        target.q4_total += fb.q4;
-        target.q5_total += fb.q5;
-        target.q6_total += fb.q6;
-        target.q7_total += fb.q7;
-        target.total_score_sum += fb.total_score;
+        const isMgmt = (fb.stream === 'Management' || mgmtPhones.has(fb.evaluator_phone));
+
+        if (isMgmt) {
+          target.mgmt_evaluations += 1;
+          target.mgmt_score_sum += fb.total_score;
+        } else {
+          target.peer_evaluations += 1;
+          target.peer_score_sum += fb.total_score;
+        }
+
+        // Apply source filter to primary stats
+        let includeInPrimary = true;
+        if (sourceFilter === "MANAGEMENT" && !isMgmt) includeInPrimary = false;
+        if (sourceFilter === "PEER" && isMgmt) includeInPrimary = false;
+
+        if (includeInPrimary) {
+          target.total_evaluations += 1;
+          target.q1_total += fb.q1;
+          target.q2_total += fb.q2;
+          target.q3_total += fb.q3;
+          target.q4_total += fb.q4;
+          target.q5_total += fb.q5;
+          target.q6_total += fb.q6;
+          target.q7_total += fb.q7;
+          target.total_score_sum += fb.total_score;
+        }
       }
     });
 
@@ -315,6 +361,11 @@ const DataProvider = {
       const count = fac.total_evaluations;
       const avg_score = count > 0 ? parseFloat((fac.total_score_sum / count).toFixed(2)) : 0;
       const avg_percentage = count > 0 ? parseFloat(((avg_score / 28) * 100).toFixed(2)) : 0;
+
+      const mgmtCount = fac.mgmt_evaluations;
+      const mgmt_avg_score = mgmtCount > 0 ? parseFloat((fac.mgmt_score_sum / mgmtCount).toFixed(2)) : 0;
+      const peerCount = fac.peer_evaluations;
+      const peer_avg_score = peerCount > 0 ? parseFloat((fac.peer_score_sum / peerCount).toFixed(2)) : 0;
 
       let grade = "N/A";
       if (count > 0) {
@@ -336,7 +387,9 @@ const DataProvider = {
         q7_avg: count > 0 ? parseFloat((fac.q7_total / count).toFixed(2)) : 0,
         avg_score,
         avg_percentage,
-        grade
+        grade,
+        mgmt_avg_score,
+        peer_avg_score
       };
     });
 
@@ -352,6 +405,75 @@ const DataProvider = {
     });
 
     return leaderboard;
+  },
+
+  // Get full list of evaluator submissions with review counts
+  async getEvaluatorSubmissions() {
+    let evaluators = [];
+    let allFeedback = [];
+
+    if (this.isCloud()) {
+      const { data: evals } = await supabaseClient
+        .from('evaluators')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (evals) evaluators = evals;
+
+      const { data: fbs } = await supabaseClient
+        .from('feedback')
+        .select('id, evaluator_phone, faculty_id, faculty_name, total_score, created_at');
+      if (fbs) allFeedback = fbs;
+    } else {
+      evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || localStorage.getItem('ST_ANNS_STUDENTS') || '[]');
+      allFeedback = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]');
+    }
+
+    const phoneFeedbackMap = {};
+    allFeedback.forEach(fb => {
+      const phone = (fb.evaluator_phone || '').trim();
+      if (!phoneFeedbackMap[phone]) phoneFeedbackMap[phone] = [];
+      phoneFeedbackMap[phone].push(fb);
+    });
+
+    const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
+    const isMgmtSister = (e) => {
+      if (!e) return false;
+      if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
+      const n = (e.name || '').toUpperCase().trim();
+      if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
+      return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
+    };
+
+    return evaluators.map(ev => {
+      const phone = (ev.phone_number || ev.phone || '').trim();
+      const reviews = phoneFeedbackMap[phone] || [];
+      const isManagement = isMgmtSister(ev);
+      return {
+        id: ev.id,
+        name: ev.name,
+        phone,
+        stream: ev.stream,
+        department: ev.department,
+        created_at: ev.created_at,
+        isManagement,
+        colleaguesCount: reviews.length,
+        reviews
+      };
+    });
+  },
+
+  // Delete an incomplete evaluator record by phone (allows faculty/sister to retry)
+  async deleteEvaluatorRecord(phone) {
+    if (this.isCloud()) {
+      await supabaseClient.from('feedback').delete().eq('evaluator_phone', phone);
+      await supabaseClient.from('evaluators').delete().eq('phone_number', phone);
+      return true;
+    }
+    const evals = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]').filter(e => (e.phone_number || e.phone) !== phone);
+    localStorage.setItem('ST_ANNS_EVALUATORS', JSON.stringify(evals));
+    const fbs = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]').filter(f => f.evaluator_phone !== phone);
+    localStorage.setItem('ST_ANNS_FEEDBACK', JSON.stringify(fbs));
+    return true;
   },
 
   // Get raw evaluator count and details
