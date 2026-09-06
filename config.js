@@ -135,27 +135,64 @@ const DataProvider = {
     const cleanId = (actor.staff_id || phone || '').trim().toUpperCase();
 
     if (this.isCloud()) {
-      // 1. Insert Evaluator
-      const { data: evaluatorData, error: sErr } = await supabaseClient
+      // 1. Fetch or create evaluator record
+      let evaluatorId = null;
+      let isNewEvaluator = false;
+
+      const { data: existingEval } = await supabaseClient
         .from('evaluators')
-        .insert([{
-          phone_number: phone,
-          staff_id: cleanId,
-          name: actor.name.trim(),
-          stream: actor.stream,
-          department: actor.department || actor.department_group || actor.group_name || ''
-        }])
-        .select()
-        .single();
+        .select('id')
+        .eq('phone_number', phone)
+        .maybeSingle();
 
-      if (sErr) throw new Error("Could not register evaluating faculty: " + (sErr.message || sErr.details));
+      if (existingEval && existingEval.id) {
+        evaluatorId = existingEval.id;
+      } else {
+        const { data: evaluatorData, error: sErr } = await supabaseClient
+          .from('evaluators')
+          .insert([{
+            phone_number: phone,
+            staff_id: cleanId,
+            name: actor.name.trim(),
+            stream: actor.stream,
+            department: actor.department || actor.department_group || actor.group_name || ''
+          }])
+          .select()
+          .single();
 
-      // 2. Prepare Feedback rows
+        if (sErr) {
+          // If already inserted concurrently, re-fetch id
+          const { data: retryEval } = await supabaseClient
+            .from('evaluators')
+            .select('id')
+            .eq('phone_number', phone)
+            .maybeSingle();
+          if (retryEval && retryEval.id) {
+            evaluatorId = retryEval.id;
+          } else {
+            throw new Error("Could not register evaluating faculty: " + (sErr.message || sErr.details));
+          }
+        } else {
+          evaluatorId = evaluatorData.id;
+          isNewEvaluator = true;
+        }
+      }
+
+      // 2. Fetch faculty id mapping to ensure valid foreign keys
+      const { data: dbFaculty } = await supabaseClient.from('faculty').select('id, sl_no');
+      const facultyIdMap = {};
+      if (dbFaculty) {
+        dbFaculty.forEach(f => {
+          facultyIdMap[f.id] = f.id;
+          facultyIdMap[f.sl_no] = f.id;
+        });
+      }
+
+      // 3. Prepare Feedback rows (matching exact Supabase feedback table schema)
       const feedbackRows = evaluations.map(ev => ({
-        evaluator_id: evaluatorData.id,
+        evaluator_id: evaluatorId,
         evaluator_phone: phone,
-        evaluator_staff_id: cleanId,
-        faculty_id: ev.faculty_id,
+        faculty_id: facultyIdMap[ev.faculty_id] || ev.faculty_id,
         faculty_name: ev.faculty_name,
         stream: actor.stream,
         q1: ev.ratings.q1,
@@ -173,7 +210,17 @@ const DataProvider = {
         .from('feedback')
         .insert(feedbackRows);
 
-      if (fbErr) throw new Error("Could not save ratings: " + (fbErr.message || fbErr.details));
+      if (fbErr) {
+        // Rollback new evaluator record so user can retry cleanly
+        if (isNewEvaluator && evaluatorId) {
+          try {
+            await supabaseClient.from('evaluators').delete().eq('id', evaluatorId);
+          } catch (e) {
+            console.warn("Rollback failed:", e);
+          }
+        }
+        throw new Error("Could not save ratings: " + (fbErr.message || fbErr.details));
+      }
       return { success: true, count: feedbackRows.length, mode: 'cloud' };
     }
 
