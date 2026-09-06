@@ -403,8 +403,16 @@ async function deleteSubmission(phone, name) {
   }
 }
 
-// View Individual Faculty Report Modal
-function viewFacultyReport(facultyId) {
+// Helper to format mark pill (Q1 - Q7)
+function formatMarkPill(mark) {
+  let color = "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (mark <= 2) color = "bg-amber-50 text-amber-700 border-amber-200";
+  else if (mark === 3) color = "bg-blue-50 text-blue-700 border-blue-200";
+  return `<span class="inline-block w-6 text-center py-0.5 rounded border text-[11px] font-bold ${color}">${mark}</span>`;
+}
+
+// View Individual Faculty Report Modal (Including WHO evaluated them and HOW)
+async function viewFacultyReport(facultyId) {
   const fac = currentLeaderboard.find(f => (f.faculty_id || f.sl_no) === facultyId);
   if (!fac) return;
   selectedFacultyForReport = fac;
@@ -425,7 +433,7 @@ function viewFacultyReport(facultyId) {
   document.getElementById("rep-mgmt-sub").textContent = `${fac.mgmt_evaluations || 0} Management Sisters`;
   document.getElementById("rep-peer-sub").textContent = `${fac.peer_evaluations || 0} Peer Faculty`;
 
-  // Populate 7 Questions table
+  // 1. Populate Aggregated 7 Criteria table
   const tbody = document.getElementById("rep-criteria-tbody");
   tbody.innerHTML = EVALUATION_QUESTIONS.map(q => {
     const avgMark = fac[q.id + "_avg"] || 0;
@@ -451,6 +459,61 @@ function viewFacultyReport(facultyId) {
       </tr>
     `;
   }).join('');
+
+  // 2. Fetch and Populate Individual Evaluators & Scores Table (Admin View)
+  const evalTbody = document.getElementById("rep-evaluators-tbody");
+  const countBadge = document.getElementById("rep-eval-count-badge");
+  evalTbody.innerHTML = `<tr><td colspan="12" class="text-center py-4 text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Loading reviews...</td></tr>`;
+
+  try {
+    const evaluations = await DataProvider.getFacultyEvaluations(fac.faculty_id || fac.sl_no);
+    if (countBadge) countBadge.textContent = `${evaluations.length} Reviews Received`;
+
+    if (evaluations.length === 0) {
+      evalTbody.innerHTML = `
+        <tr>
+          <td colspan="12" class="text-center py-6 text-slate-400">
+            <i class="fa-regular fa-comment-dots text-xl mb-1 block"></i>
+            No individual appraisals received yet for this faculty member.
+          </td>
+        </tr>
+      `;
+    } else {
+      evalTbody.innerHTML = evaluations.map(ev => {
+        const dStr = ev.created_at ? new Date(ev.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '-';
+        const rolePill = ev.isManagement
+          ? `<span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">👑 Mgmt</span>`
+          : `<span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">${ev.stream || 'Peer'}</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-2.5 px-3">
+              <span class="font-bold text-slate-900 block">${ev.evaluator_name}</span>
+              ${ev.evaluator_phone ? `<span class="text-[10px] text-slate-400 font-mono">${ev.evaluator_phone}</span>` : ''}
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">${rolePill}</td>
+            <td class="py-2.5 px-3 text-slate-600 text-[11px]">${ev.department || '-'}</td>
+            <td class="py-2.5 px-1.5 text-center">${formatMarkPill(ev.q1)}</td>
+            <td class="py-2.5 px-1.5 text-center">${formatMarkPill(ev.q2)}</td>
+            <td class="py-2.5 px-1.5 text-center">${formatMarkPill(ev.q3)}</td>
+            <td class="py-2.5 px-1.5 text-center">${formatMarkPill(ev.q4)}</td>
+            <td class="py-2.5 px-1.5 text-center">${formatMarkPill(ev.q5)}</td>
+            <td class="py-2.5 px-1.5 text-center">${formatMarkPill(ev.q6)}</td>
+            <td class="py-2.5 px-1.5 text-center">${formatMarkPill(ev.q7)}</td>
+            <td class="py-2.5 px-3 text-center whitespace-nowrap">
+              <span class="font-black text-indigo-700 text-sm">${ev.total_score}</span>
+              <span class="text-[10px] text-slate-400 font-normal">/28</span>
+              <span class="block text-[10px] text-slate-500 font-semibold">${((ev.total_score / 28) * 100).toFixed(0)}%</span>
+            </td>
+            <td class="py-2.5 px-3 text-right text-slate-400 whitespace-nowrap">${dStr}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+  } catch (err) {
+    console.error("Error loading individual faculty evaluations:", err);
+    evalTbody.innerHTML = `<tr><td colspan="12" class="text-center py-4 text-red-500">Error loading reviewer list.</td></tr>`;
+  }
 
   document.getElementById("modal-report").classList.remove("hidden");
 }
@@ -480,7 +543,7 @@ async function exportToExcel() {
     return;
   }
 
-  // Auto-size column width definitions
+  // Auto-size column width definitions for leaderboards
   const colWidths = [
     { wch: 14 }, // Rank
     { wch: 12 }, // Overall Rank
@@ -585,11 +648,58 @@ async function exportToExcel() {
   ];
   XLSX.utils.book_append_sheet(workbook, wsEvals, "Evaluator Submissions Log");
 
+  // Sheet 5: Individual Feedback Log (Who rated each faculty and exact marks)
+  try {
+    const rawDetails = await DataProvider.getAllFeedbackDetails();
+    if (rawDetails && rawDetails.length > 0) {
+      const detailRows = rawDetails.map((r, idx) => ({
+        "Sl": idx + 1,
+        "Faculty Evaluated": r.faculty_name,
+        "Evaluator Name": r.evaluator_name,
+        "Evaluator Role": r.role,
+        "Evaluator Department": r.department,
+        "Evaluator Mobile": r.evaluator_phone || "-",
+        "Q1 (Inspiring Personality)": r.q1,
+        "Q2 (Pedagogical Excellence)": r.q2,
+        "Q3 (Innovative Practices)": r.q3,
+        "Q4 (Student Development)": r.q4,
+        "Q5 (Professional Growth)": r.q5,
+        "Q6 (Contribution to College)": r.q6,
+        "Q7 (Loyalty & Integrity)": r.q7,
+        "Total Score (/28)": r.total_score,
+        "Percentage (%)": `${r.percentage}%`,
+        "Submission Date": r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : "-"
+      }));
+      const wsDetails = XLSX.utils.json_to_sheet(detailRows);
+      wsDetails["!cols"] = [
+        { wch: 6 },
+        { wch: 30 },
+        { wch: 30 },
+        { wch: 20 },
+        { wch: 22 },
+        { wch: 18 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 16 },
+        { wch: 15 },
+        { wch: 24 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, wsDetails, "Individual Appraisals Log");
+    }
+  } catch (err) {
+    console.warn("Could not append individual feedback sheet:", err);
+  }
+
   const todayStr = new Date().toISOString().slice(0, 10);
   XLSX.writeFile(workbook, `St_Anns_Faculty_Appraisal_Master_Report_${todayStr}.xlsx`);
 }
 
-// Demo Data Generator (Generates sample peer evaluations by faculty & management)
+// Demo Data Generator (Generates sample peer & management evaluations)
 async function generateDemoData() {
   if (!confirm("Generate sample peer & management evaluations for testing?")) return;
 
@@ -687,14 +797,16 @@ async function generateDemoData() {
   loadDashboardData();
 }
 
-// Reset data
-function resetAllData() {
-  if (!confirm("Are you sure you want to clear all feedback data? (Cannot be undone)")) return;
-  localStorage.removeItem('ST_ANNS_EVALUATORS');
-  localStorage.removeItem('ST_ANNS_STUDENTS');
-  localStorage.removeItem('ST_ANNS_FEEDBACK');
-  alert("Data cleared.");
-  loadDashboardData();
+// Reset data (Both Cloud & Local)
+async function resetAllData() {
+  if (!confirm("Are you sure you want to clear all feedback and evaluator submissions? (Cannot be undone)")) return;
+  try {
+    await DataProvider.resetAllData();
+    alert("Feedback data reset to zero.");
+    loadDashboardData();
+  } catch (err) {
+    alert("Error resetting data: " + (err.message || err));
+  }
 }
 
 // Supabase config modal

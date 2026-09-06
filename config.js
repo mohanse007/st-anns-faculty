@@ -504,5 +504,158 @@ const DataProvider = {
       evaluators,
       students: evaluators
     };
+  },
+
+  // Get all individual evaluations received by a specific faculty member
+  async getFacultyEvaluations(facultyId) {
+    let allFeedback = [];
+    let evaluators = [];
+
+    if (this.isCloud()) {
+      const { data: fbs } = await supabaseClient
+        .from('feedback')
+        .select('*')
+        .eq('faculty_id', facultyId)
+        .order('created_at', { ascending: false });
+      if (fbs) allFeedback = fbs;
+
+      const { data: evs } = await supabaseClient
+        .from('evaluators')
+        .select('*');
+      if (evs) evaluators = evs;
+    } else {
+      const localFb = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]');
+      allFeedback = localFb.filter(f => String(f.faculty_id) === String(facultyId));
+      evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]');
+    }
+
+    const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
+    const isMgmtSister = (e) => {
+      if (!e) return false;
+      if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
+      const n = (e.name || '').toUpperCase().trim();
+      if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
+      return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
+    };
+
+    const evalMap = {};
+    evaluators.forEach(e => {
+      const p = (e.phone_number || e.phone || '').trim();
+      if (p) evalMap[p] = e;
+      if (e.id) evalMap[e.id] = e;
+    });
+
+    return allFeedback.map(fb => {
+      const phone = (fb.evaluator_phone || '').trim();
+      const ev = evalMap[phone] || evalMap[fb.evaluator_id] || null;
+      const isMgmt = (fb.stream === 'Management') || (ev && isMgmtSister(ev));
+      const evalName = ev ? ev.name : (isMgmt ? 'Management Sister' : 'Teaching Faculty');
+      const dept = ev ? ev.department : (isMgmt ? 'Management' : '-');
+      const stream = ev ? ev.stream : (isMgmt ? 'Management' : (fb.stream || 'Faculty'));
+
+      return {
+        id: fb.id,
+        evaluator_name: evalName,
+        evaluator_phone: phone,
+        department: dept,
+        stream,
+        isManagement: isMgmt,
+        role: isMgmt ? 'Management Sister' : 'Teaching Faculty',
+        q1: fb.q1,
+        q2: fb.q2,
+        q3: fb.q3,
+        q4: fb.q4,
+        q5: fb.q5,
+        q6: fb.q6,
+        q7: fb.q7,
+        total_score: fb.total_score,
+        percentage: fb.percentage,
+        created_at: fb.created_at
+      };
+    });
+  },
+
+  // Get all individual feedback rows for the master Excel export
+  async getAllFeedbackDetails() {
+    let allFeedback = [];
+    let evaluators = [];
+
+    if (this.isCloud()) {
+      const { data: fbs } = await supabaseClient
+        .from('feedback')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (fbs) allFeedback = fbs;
+
+      const { data: evs } = await supabaseClient
+        .from('evaluators')
+        .select('*');
+      if (evs) evaluators = evs;
+    } else {
+      allFeedback = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]');
+      evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]');
+    }
+
+    const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
+    const isMgmtSister = (e) => {
+      if (!e) return false;
+      if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
+      const n = (e.name || '').toUpperCase().trim();
+      if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
+      return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
+    };
+
+    const evalMap = {};
+    evaluators.forEach(e => {
+      const p = (e.phone_number || e.phone || '').trim();
+      if (p) evalMap[p] = e;
+      if (e.id) evalMap[e.id] = e;
+    });
+
+    return allFeedback.map(fb => {
+      const phone = (fb.evaluator_phone || '').trim();
+      const ev = evalMap[phone] || evalMap[fb.evaluator_id] || null;
+      const isMgmt = (fb.stream === 'Management') || (ev && isMgmtSister(ev));
+      const evalName = ev ? ev.name : (isMgmt ? 'Management Sister' : 'Teaching Faculty');
+      const dept = ev ? ev.department : (isMgmt ? 'Management' : '-');
+      const stream = ev ? ev.stream : (isMgmt ? 'Management' : (fb.stream || 'Faculty'));
+
+      return {
+        faculty_id: fb.faculty_id,
+        faculty_name: fb.faculty_name,
+        evaluator_name: evalName,
+        evaluator_phone: phone,
+        department: dept,
+        stream,
+        role: isMgmt ? 'Management Sister' : 'Teaching Faculty',
+        isManagement: isMgmt,
+        q1: fb.q1,
+        q2: fb.q2,
+        q3: fb.q3,
+        q4: fb.q4,
+        q5: fb.q5,
+        q6: fb.q6,
+        q7: fb.q7,
+        total_score: fb.total_score,
+        percentage: fb.percentage,
+        created_at: fb.created_at
+      };
+    });
+  },
+
+  // Reset all feedback and evaluators data (Cloud + Local)
+  async resetAllData() {
+    if (this.isCloud()) {
+      try {
+        await supabaseClient.from('feedback').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        await supabaseClient.from('evaluators').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      } catch (err) {
+        console.warn("Cloud reset error:", err);
+      }
+    }
+    localStorage.removeItem('ST_ANNS_EVALUATORS');
+    localStorage.removeItem('ST_ANNS_STUDENTS');
+    localStorage.removeItem('ST_ANNS_FEEDBACK');
+    return true;
   }
 };

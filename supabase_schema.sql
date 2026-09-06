@@ -137,14 +137,17 @@ alter table evaluators enable row level security;
 alter table students enable row level security;
 alter table feedback enable row level security;
 
--- Policies to allow public read and write
+-- Policies to allow public read, write, and admin delete
 create policy "Allow public read on faculty" on faculty for select using (true);
 create policy "Allow public insert on evaluators" on evaluators for insert with check (true);
 create policy "Allow public select on evaluators" on evaluators for select using (true);
+create policy "Allow public delete on evaluators" on evaluators for delete using (true);
 create policy "Allow public insert on students" on students for insert with check (true);
 create policy "Allow public select on students" on students for select using (true);
+create policy "Allow public delete on students" on students for delete using (true);
 create policy "Allow public insert on feedback" on feedback for insert with check (true);
 create policy "Allow public select on feedback" on feedback for select using (true);
+create policy "Allow public delete on feedback" on feedback for delete using (true);
 
 -- 8. Create Leaderboard Aggregation View
 create or replace view view_faculty_leaderboard as
