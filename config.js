@@ -60,20 +60,39 @@ const DataProvider = {
 
   // Get Faculty List
   async getFacultyList() {
+    let list = [];
     if (this.isCloud()) {
       const { data, error } = await supabaseClient
         .from('faculty')
         .select('*')
         .order('sl_no', { ascending: true });
-      if (!error && data && data.length > 0) return data;
-      console.warn("Supabase fetch returned empty/error, falling back to bundled data:", error);
+      if (!error && data && data.length > 0) {
+        list = data;
+      } else {
+        console.warn("Supabase fetch returned empty/error, falling back to bundled data:", error);
+      }
     }
-    // Fallback: bundled 55 faculty
-    if (window.FACULTY_MASTER_DATA) {
-      return window.FACULTY_MASTER_DATA;
+    if (!list || list.length === 0) {
+      if (window.FACULTY_MASTER_DATA) {
+        list = [...window.FACULTY_MASTER_DATA];
+      } else {
+        const resp = await fetch('faculty_data.json');
+        list = await resp.json();
+      }
     }
-    const resp = await fetch('faculty_data.json');
-    return await resp.json();
+
+    // Ensure Management members from bundled data are present even if not yet inserted into DB
+    const bundledMgmt = (window.FACULTY_MASTER_DATA || []).filter(s => s.category === 'Management');
+    if (bundledMgmt.length > 0) {
+      const existingSlNos = new Set(list.map(s => s.sl_no));
+      bundledMgmt.forEach(m => {
+        if (!existingSlNos.has(m.sl_no)) {
+          list.push(m);
+        }
+      });
+    }
+
+    return list;
   },
 
   // Check if staff phone or roll number already submitted
@@ -195,7 +214,8 @@ const DataProvider = {
 
   // Get aggregated Leaderboard for Admin
   async getLeaderboard() {
-    const facultyList = await this.getFacultyList();
+    const rawList = await this.getFacultyList();
+    const facultyList = rawList.filter(f => f.category !== 'Management' && f.stream_code !== 'MANAGEMENT');
 
     let allFeedback = [];
     if (this.isCloud()) {
@@ -304,12 +324,14 @@ const DataProvider = {
     const interCount = evaluators.filter(s => s.stream === 'Intermediate').length;
     const degreeCount = evaluators.filter(s => s.stream === 'Degree').length;
     const bothCount = evaluators.filter(s => s.stream === 'Both').length;
+    const managementCount = evaluators.filter(s => s.stream === 'Management' || s.department === 'Management').length;
 
     return {
       total: evaluators.length,
       intermediate: interCount,
       degree: degreeCount,
       both: bothCount,
+      management: managementCount,
       evaluators,
       students: evaluators
     };

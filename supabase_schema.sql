@@ -124,7 +124,12 @@ insert into faculty (sl_no, name, designation, category, stream_code, color) val
   (52, 'MISS UMA RAMAKRISHNA', 'Teaching Faculty', 'Both (Inter & Degree Teaching)', 'BOTH', 'BLUE'),
   (53, 'MRS D MANU', 'Teaching Faculty', 'Intermediate Teaching', 'INTER', 'WHITE'),
   (54, 'MRS T KARUNA SRI', 'Teaching Faculty', 'Degree Teaching', 'DEGREE', 'YELLOW'),
-  (55, 'MRS Y DHANA LAKSHMI', 'Teaching Faculty', 'Intermediate Teaching', 'INTER', 'WHITE');
+  (55, 'MRS Y DHANA LAKSHMI', 'Teaching Faculty', 'Intermediate Teaching', 'INTER', 'WHITE'),
+  (56, 'SR GIRSELA', 'Management', 'Management', 'MANAGEMENT', 'PURPLE'),
+  (57, 'SR JANICE', 'Management', 'Management', 'MANAGEMENT', 'PURPLE'),
+  (58, 'DR SR PREMA KUMARI', 'Management', 'Management', 'MANAGEMENT', 'PURPLE'),
+  (59, 'SR KASLIN', 'Management', 'Management', 'MANAGEMENT', 'PURPLE'),
+  (60, 'SR SHYMOL SEBASTIAN', 'Management', 'Management', 'MANAGEMENT', 'PURPLE');
 
 -- 7. Configure Row Level Security (RLS)
 alter table faculty enable row level security;
@@ -163,4 +168,5 @@ select
     rank() over (order by coalesce(avg(fb.total_score), 0) desc) as overall_rank
 from faculty f
 left join feedback fb on f.id = fb.faculty_id
+where f.category != 'Management'
 group by f.id, f.sl_no, f.name, f.designation, f.category, f.stream_code;

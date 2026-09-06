@@ -439,5 +439,45 @@ window.FACULTY_MASTER_DATA = [
     "category": "Intermediate Teaching",
     "stream_code": "INTER",
     "color": "WHITE"
+  },
+  {
+    "sl_no": 56,
+    "name": "SR GIRSELA",
+    "designation": "Management",
+    "category": "Management",
+    "stream_code": "MANAGEMENT",
+    "color": "PURPLE"
+  },
+  {
+    "sl_no": 57,
+    "name": "SR JANICE",
+    "designation": "Management",
+    "category": "Management",
+    "stream_code": "MANAGEMENT",
+    "color": "PURPLE"
+  },
+  {
+    "sl_no": 58,
+    "name": "DR SR PREMA KUMARI",
+    "designation": "Management",
+    "category": "Management",
+    "stream_code": "MANAGEMENT",
+    "color": "PURPLE"
+  },
+  {
+    "sl_no": 59,
+    "name": "SR KASLIN",
+    "designation": "Management",
+    "category": "Management",
+    "stream_code": "MANAGEMENT",
+    "color": "PURPLE"
+  },
+  {
+    "sl_no": 60,
+    "name": "SR SHYMOL SEBASTIAN",
+    "designation": "Management",
+    "category": "Management",
+    "stream_code": "MANAGEMENT",
+    "color": "PURPLE"
   }
 ];

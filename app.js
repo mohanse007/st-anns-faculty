@@ -33,11 +33,22 @@ function populateEvaluatorDropdown() {
   const select = document.getElementById("fac-evaluator-select");
   if (!select) return;
 
+  const management = allStaff.filter(s => s.category === 'Management');
   const degree = allStaff.filter(s => s.category === 'Degree Teaching');
   const inter = allStaff.filter(s => s.category === 'Intermediate Teaching');
   const both = allStaff.filter(s => s.category.includes('Both'));
 
-  let html = `<option value="">-- Choose Your Name from Teaching Faculty List (55) --</option>`;
+  let html = `<option value="">-- Choose Your Name --</option>`;
+
+  if (management.length > 0) {
+    html += `<optgroup label="👑 Management (${management.length})">`;
+    management.forEach(s => {
+      html += `<option value="${s.sl_no}" data-name="${s.name}" data-category="${s.category}" data-stream="${s.stream_code}">
+        👑 ${s.name} (Management)
+      </option>`;
+    });
+    html += `</optgroup>`;
+  }
 
   html += `<optgroup label="Degree Teaching Faculty (${degree.length})">`;
   degree.forEach(s => {
@@ -75,14 +86,26 @@ function onEvaluatorSelected() {
   if (!selectedOption || !selectedOption.value) return;
 
   const streamCode = selectedOption.getAttribute("data-stream");
+  const category = selectedOption.getAttribute("data-category");
 
-  // Auto-select stream
-  let streamRadioVal = "Degree";
-  if (streamCode === 'INTER') streamRadioVal = "Intermediate";
-  else if (streamCode === 'BOTH' || streamCode === 'ALL') streamRadioVal = "Degree"; // default to Degree for common staff
+  // Auto-handle Management
+  if (category === "Management" || streamCode === "MANAGEMENT") {
+    // Select Both Wings radio by default (allows evaluating all 55 faculty or filtering by wing)
+    const bothRadio = document.querySelector('input[name="fac-stream"][value="Both"]');
+    if (bothRadio) bothRadio.checked = true;
 
-  const radio = document.querySelector(`input[name="fac-stream"][value="${streamRadioVal}"]`);
-  if (radio) radio.checked = true;
+    // Auto-fill Department as Management
+    const deptInput = document.getElementById("fac-dept-group");
+    if (deptInput && !deptInput.value) deptInput.value = "Management";
+  } else {
+    // Auto-select stream for faculty
+    let streamRadioVal = "Degree";
+    if (streamCode === 'INTER') streamRadioVal = "Intermediate";
+    else if (streamCode === 'BOTH' || streamCode === 'ALL') streamRadioVal = "Degree"; // default to Degree for common staff
+
+    const radio = document.querySelector(`input[name="fac-stream"][value="${streamRadioVal}"]`);
+    if (radio) radio.checked = true;
+  }
 
   // Focus phone input
   const phoneInput = document.getElementById("fac-phone");
@@ -128,6 +151,8 @@ async function goToStep2() {
 
   const evaluatorSl = parseInt(selectedOption.value);
   const evaluatorName = selectedOption.getAttribute("data-name");
+  const evaluatorCategory = selectedOption.getAttribute("data-category");
+  const isManagement = evaluatorCategory === "Management";
 
   // Check duplicate submission for this phone number
   nextBtn.disabled = true;
@@ -155,21 +180,36 @@ async function goToStep2() {
     faculty_id: evaluatorSl,
     name: evaluatorName,
     phone: cleanPhone,
-    stream: streamInput,
-    department: deptInput
+    stream: isManagement ? (streamInput || "Both") : streamInput,
+    department: deptInput,
+    category: evaluatorCategory,
+    isManagement: isManagement
   };
 
   // Update Display Banner
   document.getElementById("display-fac-name").textContent = currentEvaluator.name;
   document.getElementById("display-fac-id").textContent = `📱 ${currentEvaluator.phone}`;
-  document.getElementById("display-fac-dept").textContent = `${currentEvaluator.stream} Wing • ${currentEvaluator.department}`;
+  if (isManagement) {
+    document.getElementById("display-fac-dept").innerHTML = `<span class="text-purple-600 font-bold">👑 Management</span> • ${currentEvaluator.stream === 'Both' ? 'All Teaching Faculty' : currentEvaluator.stream + ' Wing'} Evaluation`;
+  } else {
+    document.getElementById("display-fac-dept").textContent = `${currentEvaluator.stream} Wing • ${currentEvaluator.department}`;
+  }
 
   // Filter Colleagues:
-  // 1. MUST EXCLUDE SELF (evaluator cannot rate herself/himself)
-  // 2. Degree Evaluator: sees Degree Teaching (32) + Both Teaching (6) = 38 colleagues (37 excluding self)
-  // 3. Intermediate Evaluator: sees Intermediate Teaching (17) + Both Teaching (6) = 23 colleagues (22 excluding self)
-  // 4. Both Wings Evaluator: sees all 55 colleagues (54 excluding self)
+  // 1. STRICT RULE: NEVER INCLUDE MANAGEMENT IN COLLEAGUES (Faculty cannot evaluate Management)
+  // 2. MUST EXCLUDE SELF
+  // 3. If evaluator is Management:
+  //    - If stream is "Both": sees all 55 teaching faculty
+  //    - If stream is "Degree": sees Degree Teaching (32) + Both Teaching (6) = 38
+  //    - If stream is "Intermediate": sees Intermediate Teaching (17) + Both Teaching (6) = 23
+  // 4. If evaluator is Faculty:
+  //    - Degree Evaluator: sees Degree Teaching (32) + Both Teaching (6) = 38 (37 excluding self)
+  //    - Intermediate Evaluator: sees Intermediate Teaching (17) + Both Teaching (6) = 23 (22 excluding self)
+  //    - Both Wings Evaluator: sees all 55 teaching colleagues (54 excluding self)
   eligibleColleagues = allStaff.filter(s => {
+    // Exclude Management members from colleague cards completely
+    if (s.category === 'Management' || s.stream_code === 'MANAGEMENT') return false;
+
     // Exclude self
     if (s.sl_no === evaluatorSl) return false;
 
@@ -178,7 +218,7 @@ async function goToStep2() {
     } else if (currentEvaluator.stream === "Intermediate") {
       return s.stream_code === 'INTER' || s.stream_code === 'BOTH';
     }
-    return true; // Both sees all teaching colleagues
+    return true; // Both sees all teaching colleagues (all 55)
   });
 
   // Reset evaluations & active selections
