@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>St. Ann's College for Women (A) | Faculty Feedback</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -25,14 +28,22 @@
       <div class="flex items-center space-x-3">
         <img src="logo.png" alt="St. Ann's College Logo" class="w-11 h-11 object-contain rounded-full bg-white p-0.5 shadow-xs border border-slate-200">
         <div>
-          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">ST. ANN'S COLLEGE FOR WOMEN (A)</h1>
-          <p class="text-xs text-slate-500">Malkapuram, Visakhapatnam</p>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">ST. ANN'S COLLEGE FOR WOMEN (A)</h1>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200">v3.0</span>
+          </div>
+          <p class="text-xs text-slate-500">Malkapuram, Visakhapatnam • Mandatory Peer Appraisal</p>
         </div>
       </div>
-      <a href="admin.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition flex items-center space-x-1">
-        <i class="fa-solid fa-lock text-[10px]"></i>
-        <span>Admin</span>
-      </a>
+      <div class="flex items-center space-x-2">
+        <span class="text-[10px] font-bold px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hidden md:inline-block">
+          <i class="fa-solid fa-check-double mr-1"></i>100% Mandatory Mode
+        </span>
+        <a href="admin.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition flex items-center space-x-1">
+          <i class="fa-solid fa-lock text-[10px]"></i>
+          <span>Admin</span>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -334,8 +345,8 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="faculty_data.js?v=2.5"></script>
-  <script src="config.js?v=2.5"></script>
-  <script src="app.js?v=2.5"></script>
+  <script src="faculty_data.js?v=3.0"></script>
+  <script src="config.js?v=3.0"></script>
+  <script src="app.js?v=3.0"></script>
 </body>
 </html>

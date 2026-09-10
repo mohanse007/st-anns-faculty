@@ -222,6 +222,25 @@ const DataProvider = {
     const phone = (actor.phone || actor.phone_number || actor.staff_id || actor.roll_number || '').replace(/\D/g, '').trim();
     const cleanId = (actor.staff_id || phone || '').trim().toUpperCase();
 
+    // 0. HARD ENFORCEMENT: Strictly enforce mandatory 100% completion of wing colleagues
+    let minRequired = 0;
+    if (actor.stream === 'Degree') minRequired = 37;
+    else if (actor.stream === 'Intermediate') minRequired = 22;
+    else if (actor.stream === 'Management' || actor.stream === 'Both') minRequired = 50;
+
+    const submittedCount = evaluations ? evaluations.length : 0;
+    if (submittedCount < minRequired) {
+      throw new Error(`Mandatory Evaluation Incomplete: You submitted ${submittedCount} colleagues, but all ${minRequired} colleagues in your wing are required as per Principal guidelines. Please hard-refresh your browser (Ctrl+F5) to load the latest version.`);
+    }
+
+    // Verify all 7 criteria are present for every colleague
+    for (const ev of evaluations) {
+      const r = ev.ratings || {};
+      if (!r.q1 || !r.q2 || !r.q3 || !r.q4 || !r.q5 || !r.q6 || !r.q7) {
+        throw new Error(`Incomplete ratings for "${ev.faculty_name || 'colleague'}": All 7 criteria must be rated.`);
+      }
+    }
+
     if (this.isCloud()) {
       // 1. Double check duplicates before writing
       const dupCheck = await this.isEvaluatorAlreadySubmitted({ name: actor.name, phone: phone });
