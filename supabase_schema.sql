@@ -101,7 +101,7 @@ insert into faculty (sl_no, name, designation, category, stream_code, color) val
   (29, 'MRS G SIRISHA', 'Teaching Faculty', 'Intermediate Teaching', 'INTER', 'WHITE'),
   (30, 'MRS LIKHITHA', 'Teaching Faculty', 'Degree Teaching', 'DEGREE', 'YELLOW'),
   (31, 'MRS ABIDA BEGUM', 'Teaching Faculty', 'Intermediate Teaching', 'INTER', 'WHITE'),
-  (32, 'MRS ANUGATA', 'Teaching Faculty', 'Degree Teaching', 'DEGREE', 'YELLOW'),
+  (32, 'Dr. L. Anugata', 'Teaching Faculty', 'Degree Teaching', 'DEGREE', 'YELLOW'),
   (33, 'MISS P SIVARANJINI', 'Teaching Faculty', 'Intermediate Teaching', 'INTER', 'WHITE'),
   (34, 'MRS SASIKALA', 'Teaching Faculty', 'Degree Teaching', 'DEGREE', 'YELLOW'),
   (35, 'MISS SK VALISHA', 'Teaching Faculty', 'Degree Teaching', 'DEGREE', 'YELLOW'),

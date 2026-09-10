@@ -250,7 +250,7 @@ window.FACULTY_MASTER_DATA = [
   },
   {
     "sl_no": 32,
-    "name": "MRS ANUGATA",
+    "name": "Dr. L. Anugata",
     "designation": "Teaching Faculty",
     "category": "Degree Teaching",
     "stream_code": "DEGREE",

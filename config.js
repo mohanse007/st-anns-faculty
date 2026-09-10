@@ -54,11 +54,57 @@ if (isSupabaseConfigured() && window.supabase) {
   }
 }
 
+// Helper: Management Sisters List & Recognizer
+const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
+const isMgmtSister = (e) => {
+  if (!e) return false;
+  if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
+  const n = (e.name || '').toUpperCase().trim();
+  if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
+  return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
+};
+
 // Unified Database Provider (Supabase with seamless LocalStorage Fallback)
 const DataProvider = {
   isCloud: () => isSupabaseConfigured() && supabaseClient !== null,
 
-  // Get Faculty List
+  // Helper to fetch ALL records from a Supabase table handling PostgREST 1000-row limit
+  async fetchAllFromCloud(table, selectQuery = '*', orderCol = 'created_at') {
+    if (!this.isCloud()) return [];
+    let allRecords = [];
+    let from = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      try {
+        const { data, error } = await supabaseClient
+          .from(table)
+          .select(selectQuery)
+          .order(orderCol, { ascending: false })
+          .range(from, from + pageSize - 1);
+
+        if (error || !data || data.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        allRecords = allRecords.concat(data);
+        if (data.length < pageSize) {
+          hasMore = false;
+        } else {
+          from += pageSize;
+        }
+      } catch (err) {
+        console.error(`Error fetching page ${from} from ${table}:`, err);
+        hasMore = false;
+      }
+    }
+
+    return allRecords;
+  },
+
+  // Get Faculty List with Dr. L. Anugata normalization
   async getFacultyList() {
     let list = [];
     if (this.isCloud()) {
@@ -67,7 +113,12 @@ const DataProvider = {
         .select('*')
         .order('sl_no', { ascending: true });
       if (!error && data && data.length > 0) {
-        list = data;
+        list = data.map(f => {
+          if (f.sl_no === 32 || f.name === 'MRS ANUGATA') {
+            return { ...f, name: 'Dr. L. Anugata' };
+          }
+          return f;
+        });
       } else {
         console.warn("Supabase fetch returned empty/error, falling back to bundled data:", error);
       }
@@ -92,50 +143,93 @@ const DataProvider = {
       });
     }
 
-    return list;
+    return list.map(f => {
+      if (f.sl_no === 32 || f.name === 'MRS ANUGATA') {
+        return { ...f, name: 'Dr. L. Anugata' };
+      }
+      return f;
+    });
   },
 
-  // Check if staff phone or roll number already submitted
-  async isRollNumberSubmitted(phoneOrRoll) {
-    const cleanKey = (phoneOrRoll || '').trim().toUpperCase();
+  // Check if evaluator already submitted by Mobile Phone AND/OR Faculty Name
+  async isEvaluatorAlreadySubmitted({ name, phone, faculty_id }) {
+    const cleanPhone = (phone || '').replace(/\D/g, '');
+    const cleanName = (name || '').trim().toUpperCase();
+
     if (this.isCloud()) {
-      // Check evaluators table by phone
-      const { data: evalData } = await supabaseClient
-        .from('evaluators')
-        .select('phone_number')
-        .eq('phone_number', cleanKey)
-        .limit(1);
-      if (evalData && evalData.length > 0) return true;
+      // 1. Check by phone
+      if (cleanPhone) {
+        const { data: phoneMatch } = await supabaseClient
+          .from('evaluators')
+          .select('id, name, phone_number, created_at')
+          .eq('phone_number', cleanPhone)
+          .limit(1);
+        if (phoneMatch && phoneMatch.length > 0) {
+          const dStr = phoneMatch[0].created_at ? new Date(phoneMatch[0].created_at).toLocaleDateString('en-IN') : '';
+          return {
+            submitted: true,
+            reason: `Mobile number ${cleanPhone} has already completed appraisal${dStr ? ' on ' + dStr : ''}. Each faculty can only submit once.`
+          };
+        }
+      }
 
-      // Fallback check students table
-      const { data: stdData } = await supabaseClient
-        .from('students')
-        .select('roll_number')
-        .eq('roll_number', cleanKey)
-        .limit(1);
-      if (stdData && stdData.length > 0) return true;
+      // 2. Check by faculty name (strictly prevents same faculty from using another phone)
+      if (cleanName) {
+        const allEvals = await this.fetchAllFromCloud('evaluators', 'id, name, phone_number, created_at');
+        if (allEvals && allEvals.length > 0) {
+          const match = allEvals.find(e => {
+            const eName = (e.name || '').trim().toUpperCase();
+            if (eName === cleanName) return true;
+            if (cleanName.includes('ANUGATA') && eName.includes('ANUGATA')) return true;
+            return false;
+          });
+          if (match) {
+            const dStr = match.created_at ? new Date(match.created_at).toLocaleDateString('en-IN') : '';
+            return {
+              submitted: true,
+              reason: `Faculty member "${name}" has already completed appraisal${dStr ? ' on ' + dStr : ''}. Multiple submissions are not allowed.`
+            };
+          }
+        }
+      }
 
-      return false;
+      return { submitted: false };
     }
-    // Local storage check
-    const localEvaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]');
-    const isEval = localEvaluators.some(e => 
-      (e.phone || e.phone_number || e.staff_id || '').trim().toUpperCase() === cleanKey
-    );
-    if (isEval) return true;
 
-    const localStudents = JSON.parse(localStorage.getItem('ST_ANNS_STUDENTS') || '[]');
-    return localStudents.some(s => (s.roll_number || s.phone || '').trim().toUpperCase() === cleanKey);
+    // LocalStorage fallback
+    const localEvaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]');
+    if (cleanPhone) {
+      const pMatch = localEvaluators.find(e => (e.phone || e.phone_number || '').replace(/\D/g, '') === cleanPhone);
+      if (pMatch) return { submitted: true, reason: `Mobile number ${cleanPhone} has already submitted appraisal.` };
+    }
+    if (cleanName) {
+      const nMatch = localEvaluators.find(e => (e.name || '').trim().toUpperCase() === cleanName);
+      if (nMatch) return { submitted: true, reason: `Faculty member "${name}" has already completed appraisal.` };
+    }
+
+    return { submitted: false };
+  },
+
+  // Backwards-compatible wrapper
+  async isRollNumberSubmitted(phoneOrRoll) {
+    const res = await this.isEvaluatorAlreadySubmitted({ phone: phoneOrRoll });
+    return res.submitted;
   },
 
   // Submit complete faculty peer appraisal
   async submitFeedback({ evaluator, student, evaluations }) {
     const actor = evaluator || student;
-    const phone = (actor.phone || actor.phone_number || actor.staff_id || actor.roll_number || '').trim();
+    const phone = (actor.phone || actor.phone_number || actor.staff_id || actor.roll_number || '').replace(/\D/g, '').trim();
     const cleanId = (actor.staff_id || phone || '').trim().toUpperCase();
 
     if (this.isCloud()) {
-      // 1. Fetch or create evaluator record
+      // 1. Double check duplicates before writing
+      const dupCheck = await this.isEvaluatorAlreadySubmitted({ name: actor.name, phone: phone });
+      if (dupCheck.submitted) {
+        throw new Error(dupCheck.reason);
+      }
+
+      // 2. Fetch or create evaluator record
       let evaluatorId = null;
       let isNewEvaluator = false;
 
@@ -161,7 +255,6 @@ const DataProvider = {
           .single();
 
         if (sErr) {
-          // If already inserted concurrently, re-fetch id
           const { data: retryEval } = await supabaseClient
             .from('evaluators')
             .select('id')
@@ -178,7 +271,7 @@ const DataProvider = {
         }
       }
 
-      // 2. Fetch faculty id mapping to ensure valid foreign keys
+      // 3. Fetch faculty id mapping to ensure valid foreign keys
       const { data: dbFaculty } = await supabaseClient.from('faculty').select('id, sl_no');
       const facultyIdMap = {};
       if (dbFaculty) {
@@ -188,7 +281,7 @@ const DataProvider = {
         });
       }
 
-      // 3. Prepare Feedback rows (matching exact Supabase feedback table schema)
+      // 4. Prepare Feedback rows
       const feedbackRows = evaluations.map(ev => ({
         evaluator_id: evaluatorId,
         evaluator_phone: phone,
@@ -211,7 +304,6 @@ const DataProvider = {
         .insert(feedbackRows);
 
       if (fbErr) {
-        // Rollback new evaluator record so user can retry cleanly
         if (isNewEvaluator && evaluatorId) {
           try {
             await supabaseClient.from('evaluators').delete().eq('id', evaluatorId);
@@ -238,7 +330,7 @@ const DataProvider = {
     evaluations.forEach(ev => {
       feedback.push({
         id: 'local-fb-' + Math.random().toString(36).substr(2, 9),
-        evaluator_staff_id: cleanId,
+        evaluator_phone: phone,
         faculty_id: ev.faculty_id,
         faculty_name: ev.faculty_name,
         stream: actor.stream,
@@ -259,37 +351,21 @@ const DataProvider = {
     return { success: true, count: evaluations.length, mode: 'local' };
   },
 
-  // Get aggregated Leaderboard for Admin with optional source filter ('ALL', 'MANAGEMENT', 'PEER')
+  // Get aggregated Leaderboard for Admin with unlimited pagination support
   async getLeaderboard(sourceFilter = "ALL") {
     const rawList = await this.getFacultyList();
     const facultyList = rawList.filter(f => f.category !== 'Management' && f.stream_code !== 'MANAGEMENT');
 
     let allFeedback = [];
     let evaluators = [];
-    if (this.isCloud()) {
-      const { data, error } = await supabaseClient
-        .from('feedback')
-        .select('*');
-      if (!error && data) allFeedback = data;
 
-      const { data: evals } = await supabaseClient
-        .from('evaluators')
-        .select('phone_number, stream, department, name');
-      if (evals) evaluators = evals;
+    if (this.isCloud()) {
+      allFeedback = await this.fetchAllFromCloud('feedback', '*');
+      evaluators = await this.fetchAllFromCloud('evaluators', 'phone_number, stream, department, name');
     } else {
       allFeedback = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]');
       evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]');
     }
-
-    // Set of Management phone numbers / identifiers
-    const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
-    const isMgmtSister = (e) => {
-      if (!e) return false;
-      if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
-      const n = (e.name || '').toUpperCase().trim();
-      if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
-      return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
-    };
 
     const mgmtPhones = new Set();
     evaluators.forEach(e => {
@@ -317,7 +393,6 @@ const DataProvider = {
         q6_total: 0,
         q7_total: 0,
         total_score_sum: 0,
-        // Separate counters for Management and Peer
         mgmt_evaluations: 0,
         mgmt_score_sum: 0,
         peer_evaluations: 0,
@@ -338,7 +413,6 @@ const DataProvider = {
           target.peer_score_sum += fb.total_score;
         }
 
-        // Apply source filter to primary stats
         let includeInPrimary = true;
         if (sourceFilter === "MANAGEMENT" && !isMgmt) includeInPrimary = false;
         if (sourceFilter === "PEER" && isMgmt) includeInPrimary = false;
@@ -393,13 +467,11 @@ const DataProvider = {
       };
     });
 
-    // Sort descending by avg_score
     leaderboard.sort((a, b) => {
       if (b.avg_score !== a.avg_score) return b.avg_score - a.avg_score;
       return b.total_evaluations - a.total_evaluations;
     });
 
-    // Assign overall rank
     leaderboard.forEach((item, index) => {
       item.rank = index + 1;
     });
@@ -407,22 +479,14 @@ const DataProvider = {
     return leaderboard;
   },
 
-  // Get full list of evaluator submissions with review counts
+  // Get full list of evaluator submissions with unlimited pagination support
   async getEvaluatorSubmissions() {
     let evaluators = [];
     let allFeedback = [];
 
     if (this.isCloud()) {
-      const { data: evals } = await supabaseClient
-        .from('evaluators')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (evals) evaluators = evals;
-
-      const { data: fbs } = await supabaseClient
-        .from('feedback')
-        .select('id, evaluator_phone, faculty_id, faculty_name, total_score, created_at');
-      if (fbs) allFeedback = fbs;
+      evaluators = await this.fetchAllFromCloud('evaluators', '*');
+      allFeedback = await this.fetchAllFromCloud('feedback', 'id, evaluator_phone, faculty_id, faculty_name, total_score, created_at');
     } else {
       evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || localStorage.getItem('ST_ANNS_STUDENTS') || '[]');
       allFeedback = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]');
@@ -434,15 +498,6 @@ const DataProvider = {
       if (!phoneFeedbackMap[phone]) phoneFeedbackMap[phone] = [];
       phoneFeedbackMap[phone].push(fb);
     });
-
-    const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
-    const isMgmtSister = (e) => {
-      if (!e) return false;
-      if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
-      const n = (e.name || '').toUpperCase().trim();
-      if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
-      return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
-    };
 
     return evaluators.map(ev => {
       const phone = (ev.phone_number || ev.phone || '').trim();
@@ -462,7 +517,7 @@ const DataProvider = {
     });
   },
 
-  // Delete an incomplete evaluator record by phone (allows faculty/sister to retry)
+  // Delete an evaluator record by phone
   async deleteEvaluatorRecord(phone) {
     if (this.isCloud()) {
       await supabaseClient.from('feedback').delete().eq('evaluator_phone', phone);
@@ -480,12 +535,7 @@ const DataProvider = {
   async getStudentStats() {
     let evaluators = [];
     if (this.isCloud()) {
-      const { data } = await supabaseClient.from('evaluators').select('*');
-      if (data && data.length > 0) evaluators = data;
-      else {
-        const { data: stdData } = await supabaseClient.from('students').select('*');
-        if (stdData) evaluators = stdData;
-      }
+      evaluators = await this.fetchAllFromCloud('evaluators', '*');
     } else {
       evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || localStorage.getItem('ST_ANNS_STUDENTS') || '[]');
     }
@@ -493,7 +543,7 @@ const DataProvider = {
     const interCount = evaluators.filter(s => s.stream === 'Intermediate').length;
     const degreeCount = evaluators.filter(s => s.stream === 'Degree').length;
     const bothCount = evaluators.filter(s => s.stream === 'Both').length;
-    const managementCount = evaluators.filter(s => s.stream === 'Management' || s.department === 'Management').length;
+    const managementCount = evaluators.filter(s => s.stream === 'Management' || s.department === 'Management' || isMgmtSister(s)).length;
 
     return {
       total: evaluators.length,
@@ -519,24 +569,12 @@ const DataProvider = {
         .order('created_at', { ascending: false });
       if (fbs) allFeedback = fbs;
 
-      const { data: evs } = await supabaseClient
-        .from('evaluators')
-        .select('*');
-      if (evs) evaluators = evs;
+      evaluators = await this.fetchAllFromCloud('evaluators', '*');
     } else {
       const localFb = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]');
       allFeedback = localFb.filter(f => String(f.faculty_id) === String(facultyId));
       evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]');
     }
-
-    const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
-    const isMgmtSister = (e) => {
-      if (!e) return false;
-      if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
-      const n = (e.name || '').toUpperCase().trim();
-      if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
-      return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
-    };
 
     const evalMap = {};
     evaluators.forEach(e => {
@@ -575,35 +613,18 @@ const DataProvider = {
     });
   },
 
-  // Get all individual feedback rows for the master Excel export
+  // Get all individual feedback rows for master Excel export (unlimited pagination)
   async getAllFeedbackDetails() {
     let allFeedback = [];
     let evaluators = [];
 
     if (this.isCloud()) {
-      const { data: fbs } = await supabaseClient
-        .from('feedback')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (fbs) allFeedback = fbs;
-
-      const { data: evs } = await supabaseClient
-        .from('evaluators')
-        .select('*');
-      if (evs) evaluators = evs;
+      allFeedback = await this.fetchAllFromCloud('feedback', '*');
+      evaluators = await this.fetchAllFromCloud('evaluators', '*');
     } else {
       allFeedback = JSON.parse(localStorage.getItem('ST_ANNS_FEEDBACK') || '[]');
       evaluators = JSON.parse(localStorage.getItem('ST_ANNS_EVALUATORS') || '[]');
     }
-
-    const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
-    const isMgmtSister = (e) => {
-      if (!e) return false;
-      if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
-      const n = (e.name || '').toUpperCase().trim();
-      if (MANAGEMENT_NAMES.some(m => n.includes(m) || m.includes(n))) return true;
-      return n.startsWith('SR ') || n.startsWith('SR.') || n.includes(' SR ') || n.includes('SISTER');
-    };
 
     const evalMap = {};
     evaluators.forEach(e => {
@@ -656,6 +677,15 @@ const DataProvider = {
     localStorage.removeItem('ST_ANNS_EVALUATORS');
     localStorage.removeItem('ST_ANNS_STUDENTS');
     localStorage.removeItem('ST_ANNS_FEEDBACK');
+
+    // Also clear all draft keys
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('ST_ANNS_DRAFT_')) {
+        localStorage.removeItem(key);
+      }
+    }
+
     return true;
   }
 };

@@ -141,6 +141,15 @@
             </div>
           </div>
 
+          <!-- Draft Detected Banner -->
+          <div id="step1-draft-banner" class="hidden p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i class="fa-solid fa-clock-rotate-left text-blue-600 text-sm"></i>
+              <span id="step1-draft-text">Draft found: You have a saved evaluation in progress.</span>
+            </div>
+            <button type="button" onclick="clearCurrentDraft()" class="text-[11px] text-blue-600 hover:text-red-600 underline font-semibold">Start Fresh</button>
+          </div>
+
           <!-- Error Alert -->
           <div id="step1-error" class="hidden p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center space-x-2">
             <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
@@ -208,16 +217,43 @@
         </button>
       </div>
 
-      <!-- Filter / Instructions Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200">
-        <div>
-          <h3 class="font-bold text-slate-900 text-base">Select Colleagues & Rate Performance</h3>
-          <p class="text-xs text-slate-500">Select peer faculty members you wish to evaluate across the 7 criteria. (Self-evaluation is automatically excluded).</p>
+      <!-- Progress & Filter Header -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-bold text-slate-900 text-base">Colleague Peer Evaluations</h3>
+              <span id="mandatory-stream-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Mandatory: Complete All</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">As per Principal guidelines, evaluate all colleagues in your wing. Progress is auto-saved as you click.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Completion Filter Tabs -->
+            <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+              <button type="button" onclick="setCompletionTab('ALL')" id="tab-comp-ALL" class="px-2.5 py-1 rounded-lg bg-white text-indigo-700 shadow-xs">All (<span id="count-tab-all">0</span>)</button>
+              <button type="button" onclick="setCompletionTab('PENDING')" id="tab-comp-PENDING" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900">Pending (<span id="count-tab-pending">0</span>)</button>
+              <button type="button" onclick="setCompletionTab('COMPLETED')" id="tab-comp-COMPLETED" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900">Completed (<span id="count-tab-completed">0</span>)</button>
+            </div>
+
+            <!-- Search input -->
+            <div class="relative min-w-[180px]">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs"><i class="fa-solid fa-search"></i></span>
+              <input type="text" id="faculty-search" oninput="filterFacultyCards()" placeholder="Search colleague name..."
+                class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+          </div>
         </div>
-        <div class="relative min-w-[220px]">
-          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs"><i class="fa-solid fa-search"></i></span>
-          <input type="text" id="faculty-search" oninput="filterFacultyCards()" placeholder="Search colleague name..."
-            class="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+
+        <!-- Visual Progress Bar -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs text-slate-500 font-semibold">
+            <span>Evaluation Progress</span>
+            <span id="eval-progress-percent" class="text-indigo-600 font-bold">0% Completed</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+            <div id="eval-progress-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
         </div>
       </div>
 
@@ -231,18 +267,21 @@
         <div class="bg-slate-900/95 backdrop-blur text-white p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-700">
           <div class="flex items-center space-x-3 text-xs w-full sm:w-auto justify-between sm:justify-start">
             <div>
-              <span class="text-slate-400">Colleagues Evaluated:</span>
-              <span id="eval-progress-count" class="font-bold text-emerald-400 text-sm ml-1">0</span>
-              <span id="eval-total-count" class="text-slate-400 text-xs">/ 0 Faculty</span>
+              <span class="text-slate-400">Completed:</span>
+              <span id="eval-progress-count" class="font-black text-emerald-400 text-base ml-1">0</span>
+              <span id="eval-total-count" class="text-slate-300 text-xs">/ 0 Required</span>
             </div>
             <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
-            <div id="eval-status-msg" class="text-slate-300 text-[11px]">Please rate at least 1 colleague to submit</div>
+            <div id="eval-status-msg" class="text-amber-300 text-[11px] font-medium flex items-center space-x-1.5">
+              <i class="fa-solid fa-lock text-xs" id="eval-status-icon"></i>
+              <span id="eval-status-text">Complete all colleagues to submit</span>
+            </div>
           </div>
 
-          <button id="btn-submit-feedback" onclick="submitFinalFeedback()"
-            class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-2">
-            <i class="fa-solid fa-paper-plane text-[11px]"></i>
-            <span>Submit Feedback</span>
+          <button id="btn-submit-feedback" onclick="submitFinalFeedback()" disabled
+            class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-2 opacity-50 cursor-not-allowed">
+            <i class="fa-solid fa-lock text-[11px]" id="btn-submit-icon"></i>
+            <span id="btn-submit-label">Submit Final Appraisal</span>
           </button>
         </div>
       </div>
@@ -295,8 +334,8 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="faculty_data.js?v=2.4"></script>
-  <script src="config.js?v=2.4"></script>
-  <script src="app.js?v=2.4"></script>
+  <script src="faculty_data.js?v=2.5"></script>
+  <script src="config.js?v=2.5"></script>
+  <script src="app.js?v=2.5"></script>
 </body>
 </html>
