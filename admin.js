@@ -129,6 +129,11 @@ async function loadDashboardData() {
 
     // 3. Leaderboard
     currentLeaderboard = await DataProvider.getLeaderboard(currentSourceFilter);
+    currentLeaderboard.forEach(f => {
+      if (f.sl_no === 32 || f.name === 'MRS ANUGATA') {
+        f.name = 'Dr. L. Anugata';
+      }
+    });
 
     // 4. College Overall Average
     let totalScoreSum = 0;
@@ -241,7 +246,7 @@ function applyFiltersAndRender() {
         <td class="py-3 px-4 text-center whitespace-nowrap">${rankBadge}${subRank}</td>
         <td class="py-3 px-4 text-center font-mono text-slate-400">#${fac.sl_no}</td>
         <td class="py-3 px-4">
-          <span class="font-bold text-slate-900 block">${fac.name}</span>
+          <span class="font-bold text-slate-900 block">${(fac.sl_no === 32 || fac.name === 'MRS ANUGATA') ? 'Dr. L. Anugata' : fac.name}</span>
           ${fac.designation && fac.designation !== 'Teaching Faculty' ? `<span class="text-[10px] text-slate-400 font-medium">${fac.designation}</span>` : ''}
         </td>
         <td class="py-3 px-4">
