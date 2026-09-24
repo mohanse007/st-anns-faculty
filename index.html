@@ -30,7 +30,7 @@
         <div>
           <div class="flex items-center space-x-2">
             <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">ST. ANN'S COLLEGE FOR WOMEN (A)</h1>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200">v3.1</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200">v3.2</span>
           </div>
           <p class="text-xs text-slate-500">Malkapuram, Visakhapatnam • Mandatory Peer Appraisal</p>
         </div>
@@ -119,34 +119,25 @@
             </div>
           </div>
 
-          <!-- Stream Selection (Inter vs Degree vs Both) -->
+          <!-- Stream Selection (Degree vs Intermediate) -->
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Your College Wing / Stream *</label>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
               <label class="stream-card cursor-pointer">
                 <input type="radio" name="fac-stream" value="Degree" checked class="peer sr-only" onchange="onStreamChange()">
-                <div class="p-3.5 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/60 transition text-center flex flex-col items-center justify-center space-y-1">
-                  <i class="fa-solid fa-graduation-cap text-xl text-slate-400 peer-checked:text-indigo-600"></i>
-                  <span class="font-bold text-xs sm:text-sm text-slate-800">Degree Staff</span>
-                  <span class="text-[10px] text-slate-500">Degree College</span>
+                <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/60 transition text-center flex flex-col items-center justify-center space-y-1">
+                  <i class="fa-solid fa-graduation-cap text-2xl text-slate-400 peer-checked:text-indigo-600"></i>
+                  <span class="font-bold text-sm text-slate-800">Degree Staff</span>
+                  <span class="text-xs text-slate-500">Degree College</span>
                 </div>
               </label>
 
               <label class="stream-card cursor-pointer">
                 <input type="radio" name="fac-stream" value="Intermediate" class="peer sr-only" onchange="onStreamChange()">
-                <div class="p-3.5 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/60 transition text-center flex flex-col items-center justify-center space-y-1">
-                  <i class="fa-solid fa-school text-xl text-slate-400 peer-checked:text-indigo-600"></i>
-                  <span class="font-bold text-xs sm:text-sm text-slate-800">Intermediate</span>
-                  <span class="text-[10px] text-slate-500">Junior & Senior Inter</span>
-                </div>
-              </label>
-
-              <label class="stream-card cursor-pointer">
-                <input type="radio" name="fac-stream" value="Both" class="peer sr-only" onchange="onStreamChange()">
-                <div class="p-3.5 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/60 transition text-center flex flex-col items-center justify-center space-y-1">
-                  <i class="fa-solid fa-arrows-split-up-and-left text-xl text-slate-400 peer-checked:text-indigo-600"></i>
-                  <span class="font-bold text-xs sm:text-sm text-slate-800">Both Wings</span>
-                  <span class="text-[10px] text-slate-500">Inter & Degree</span>
+                <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/60 transition text-center flex flex-col items-center justify-center space-y-1">
+                  <i class="fa-solid fa-school text-2xl text-slate-400 peer-checked:text-indigo-600"></i>
+                  <span class="font-bold text-sm text-slate-800">Intermediate</span>
+                  <span class="text-xs text-slate-500">Junior & Senior Inter</span>
                 </div>
               </label>
             </div>
@@ -345,8 +336,8 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="faculty_data.js?v=3.1"></script>
-  <script src="config.js?v=3.1"></script>
-  <script src="app.js?v=3.1"></script>
+  <script src="faculty_data.js?v=3.2"></script>
+  <script src="config.js?v=3.2"></script>
+  <script src="app.js?v=3.2"></script>
 </body>
 </html>

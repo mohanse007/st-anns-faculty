@@ -127,16 +127,11 @@ function onEvaluatorSelected() {
     draftBanner.classList.add("hidden");
   }
 
-  // Auto-handle Management
+  // Auto-handle stream selection based on staff wing
   if (category === "Management" || streamCode === "MANAGEMENT") {
-    const bothRadio = document.querySelector('input[name="fac-stream"][value="Both"]');
-    if (bothRadio) bothRadio.checked = true;
     if (deptInput && !deptInput.value) deptInput.value = "Management";
   } else if (!hasDraft) {
-    let streamRadioVal = "Degree";
-    if (streamCode === 'INTER') streamRadioVal = "Intermediate";
-    else if (streamCode === 'BOTH' || streamCode === 'ALL') streamRadioVal = "Degree";
-
+    const streamRadioVal = streamCode === 'INTER' ? "Intermediate" : "Degree";
     const radio = document.querySelector(`input[name="fac-stream"][value="${streamRadioVal}"]`);
     if (radio) radio.checked = true;
   }
@@ -230,7 +225,7 @@ async function goToStep2() {
     faculty_id: evaluatorSl,
     name: evaluatorName,
     phone: cleanPhone,
-    stream: isManagement ? (streamInput || "Both") : streamInput,
+    stream: isManagement ? "Management" : streamInput,
     department: deptInput,
     category: evaluatorCategory,
     isManagement: isManagement
@@ -240,7 +235,7 @@ async function goToStep2() {
   document.getElementById("display-fac-name").textContent = currentEvaluator.name;
   document.getElementById("display-fac-id").textContent = `📱 ${currentEvaluator.phone}`;
   if (isManagement) {
-    document.getElementById("display-fac-dept").innerHTML = `<span class="text-purple-600 font-bold">👑 Management</span> • ${currentEvaluator.stream === 'Both' ? 'All Teaching Faculty' : currentEvaluator.stream + ' Wing'} Evaluation`;
+    document.getElementById("display-fac-dept").innerHTML = `<span class="text-purple-600 font-bold">👑 Management</span> • All 55 Teaching Faculty Evaluation`;
   } else {
     document.getElementById("display-fac-dept").textContent = `${currentEvaluator.stream} Wing • ${currentEvaluator.department}`;
   }
