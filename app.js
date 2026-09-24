@@ -248,8 +248,8 @@ async function goToStep2() {
   // Filter Colleagues according to strict wing rules:
   // 1. Never evaluate management sisters
   // 2. Never evaluate self
-  // 3. Degree Evaluator -> sees all Degree & Both teaching faculty (37 colleagues)
-  // 4. Inter Evaluator -> sees all Inter & Both teaching faculty (22 colleagues)
+  // 3. Degree Evaluator -> sees all Degree teaching faculty (31 colleagues)
+  // 4. Inter Evaluator -> sees all Inter teaching faculty (22 colleagues)
   // 5. Management Evaluator -> sees all 55 teaching faculty
   eligibleColleagues = allStaff.filter(s => {
     if (s.category === 'Management' || s.stream_code === 'MANAGEMENT') return false;

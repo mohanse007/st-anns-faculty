@@ -143,11 +143,18 @@ const DataProvider = {
       });
     }
 
+    const interSlNos = new Set([8, 9, 22, 36, 50, 52]);
     return list.map(f => {
-      if (f.sl_no === 32 || f.name === 'MRS ANUGATA') {
-        return { ...f, name: 'Dr. L. Anugata' };
+      let updated = { ...f };
+      if (updated.sl_no === 32 || updated.name === 'MRS ANUGATA') {
+        updated.name = 'Dr. L. Anugata';
       }
-      return f;
+      if (interSlNos.has(updated.sl_no)) {
+        updated.stream_code = 'INTER';
+        updated.category = 'Intermediate Teaching';
+        updated.color = 'WHITE';
+      }
+      return updated;
     });
   },
 
@@ -224,9 +231,9 @@ const DataProvider = {
 
     // 0. HARD ENFORCEMENT: Strictly enforce mandatory 100% completion of wing colleagues
     let minRequired = 0;
-    if (actor.stream === 'Degree') minRequired = 37;
+    if (actor.stream === 'Degree') minRequired = 31;
     else if (actor.stream === 'Intermediate') minRequired = 22;
-    else if (actor.stream === 'Management' || actor.stream === 'Both') minRequired = 50;
+    else if (actor.stream === 'Management' || actor.stream === 'Both') minRequired = 55;
 
     const submittedCount = evaluations ? evaluations.length : 0;
     if (submittedCount < minRequired) {

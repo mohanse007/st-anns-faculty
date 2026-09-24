@@ -1,4 +1,4 @@
-// Bundled 55 Teaching Faculty (Intermediate & Degree)
+// Bundled 55 Teaching Faculty (Intermediate & Degree) + 5 Management
 window.FACULTY_MASTER_DATA = [
   {
     "sl_no": 1,
@@ -60,17 +60,17 @@ window.FACULTY_MASTER_DATA = [
     "sl_no": 8,
     "name": "MRS PREMALATHA",
     "designation": "Teaching Faculty",
-    "category": "Both (Inter & Degree Teaching)",
-    "stream_code": "BOTH",
-    "color": "BLUE"
+    "category": "Intermediate Teaching",
+    "stream_code": "INTER",
+    "color": "WHITE"
   },
   {
     "sl_no": 9,
     "name": "MRS A ADILAKSHMI",
     "designation": "Teaching Faculty",
-    "category": "Both (Inter & Degree Teaching)",
-    "stream_code": "BOTH",
-    "color": "BLUE"
+    "category": "Intermediate Teaching",
+    "stream_code": "INTER",
+    "color": "WHITE"
   },
   {
     "sl_no": 10,
@@ -172,9 +172,9 @@ window.FACULTY_MASTER_DATA = [
     "sl_no": 22,
     "name": "MRS GAYATHRI",
     "designation": "Teaching Faculty",
-    "category": "Both (Inter & Degree Teaching)",
-    "stream_code": "BOTH",
-    "color": "BLUE"
+    "category": "Intermediate Teaching",
+    "stream_code": "INTER",
+    "color": "WHITE"
   },
   {
     "sl_no": 23,
@@ -284,9 +284,9 @@ window.FACULTY_MASTER_DATA = [
     "sl_no": 36,
     "name": "MRS NAIZ",
     "designation": "Teaching Faculty",
-    "category": "Both (Inter & Degree Teaching)",
-    "stream_code": "BOTH",
-    "color": "BLUE"
+    "category": "Intermediate Teaching",
+    "stream_code": "INTER",
+    "color": "WHITE"
   },
   {
     "sl_no": 37,
@@ -396,9 +396,9 @@ window.FACULTY_MASTER_DATA = [
     "sl_no": 50,
     "name": "MISS SK MD SHAHENAZ SULTANA",
     "designation": "Teaching Faculty",
-    "category": "Both (Inter & Degree Teaching)",
-    "stream_code": "BOTH",
-    "color": "BLUE"
+    "category": "Intermediate Teaching",
+    "stream_code": "INTER",
+    "color": "WHITE"
   },
   {
     "sl_no": 51,
@@ -412,9 +412,9 @@ window.FACULTY_MASTER_DATA = [
     "sl_no": 52,
     "name": "MISS UMA RAMAKRISHNA",
     "designation": "Teaching Faculty",
-    "category": "Both (Inter & Degree Teaching)",
-    "stream_code": "BOTH",
-    "color": "BLUE"
+    "category": "Intermediate Teaching",
+    "stream_code": "INTER",
+    "color": "WHITE"
   },
   {
     "sl_no": 53,
