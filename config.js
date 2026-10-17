@@ -132,11 +132,12 @@ const DataProvider = {
       }
     }
 
-    // Filter out SR GIRSELA (sl_no: 56)
-    list = (list || []).filter(f => f.sl_no !== 56 && f.name !== 'SR GIRSELA');
+    // Filter out SR GIRSELA (sl_no: 56, id: 148, or name contains GIRSELA)
+    const isGirsela = f => f.sl_no === 56 || f.id === 148 || (f.name && f.name.toUpperCase().includes('GIRSELA'));
+    list = (list || []).filter(f => !isGirsela(f));
 
     // Ensure Management members from bundled data are present even if not yet inserted into DB
-    const bundledMgmt = (window.FACULTY_MASTER_DATA || []).filter(s => s.category === 'Management' && s.sl_no !== 56 && s.name !== 'SR GIRSELA');
+    const bundledMgmt = (window.FACULTY_MASTER_DATA || []).filter(s => s.category === 'Management' && !isGirsela(s));
     if (bundledMgmt.length > 0) {
       const existingSlNos = new Set(list.map(s => s.sl_no));
       bundledMgmt.forEach(m => {

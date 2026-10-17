@@ -18,7 +18,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Load Faculty Master Data
 async function loadFacultyList() {
   try {
-    allStaff = await DataProvider.getFacultyList();
+    const raw = await DataProvider.getFacultyList();
+    allStaff = (raw || []).filter(s => s.sl_no !== 56 && s.id !== 148 && !(s.name || '').toUpperCase().includes('GIRSELA'));
     populateEvaluatorDropdown();
   } catch (err) {
     console.error("Error loading faculty data:", err);
@@ -30,10 +31,11 @@ function populateEvaluatorDropdown() {
   const select = document.getElementById("fac-evaluator-select");
   if (!select) return;
 
-  const management = allStaff.filter(s => s.category === 'Management' || s.stream_code === 'MANAGEMENT');
-  const degree = allStaff.filter(s => s.stream_code === 'DEGREE' && s.category !== 'Management');
-  const inter = allStaff.filter(s => s.stream_code === 'INTER' && s.category !== 'Management');
-  const both = allStaff.filter(s => s.stream_code === 'BOTH' && s.category !== 'Management');
+  const isGirsela = s => s.sl_no === 56 || s.id === 148 || (s.name && s.name.toUpperCase().includes('GIRSELA'));
+  const management = allStaff.filter(s => (s.category === 'Management' || s.stream_code === 'MANAGEMENT') && !isGirsela(s));
+  const degree = allStaff.filter(s => s.stream_code === 'DEGREE' && s.category !== 'Management' && !isGirsela(s));
+  const inter = allStaff.filter(s => s.stream_code === 'INTER' && s.category !== 'Management' && !isGirsela(s));
+  const both = allStaff.filter(s => s.stream_code === 'BOTH' && s.category !== 'Management' && !isGirsela(s));
 
   let html = `<option value="">-- Click here to select your name --</option>`;
 
