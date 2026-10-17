@@ -441,19 +441,11 @@ window.FACULTY_MASTER_DATA = [
     "color": "WHITE"
   },
   {
-    "sl_no": 56,
-    "name": "SR GIRSELA",
-    "designation": "Management",
-    "category": "Management",
-    "stream_code": "MANAGEMENT",
-    "color": "PURPLE"
-  },
-  {
     "sl_no": 57,
     "name": "SR JANICE",
     "designation": "Management",
     "category": "Management",
-    "stream_code": "MANAGEMENT",
+    "stream_code": "DEGREE",
     "color": "PURPLE"
   },
   {
@@ -461,7 +453,7 @@ window.FACULTY_MASTER_DATA = [
     "name": "DR SR PREMA KUMARI",
     "designation": "Management",
     "category": "Management",
-    "stream_code": "MANAGEMENT",
+    "stream_code": "DEGREE",
     "color": "PURPLE"
   },
   {
@@ -469,7 +461,7 @@ window.FACULTY_MASTER_DATA = [
     "name": "SR KASLIN",
     "designation": "Management",
     "category": "Management",
-    "stream_code": "MANAGEMENT",
+    "stream_code": "INTER",
     "color": "PURPLE"
   },
   {
@@ -477,7 +469,7 @@ window.FACULTY_MASTER_DATA = [
     "name": "SR SHYMOL SEBASTIAN",
     "designation": "Management",
     "category": "Management",
-    "stream_code": "MANAGEMENT",
+    "stream_code": "DEGREE",
     "color": "PURPLE"
   }
 ];

@@ -55,7 +55,7 @@ if (isSupabaseConfigured() && window.supabase) {
 }
 
 // Helper: Management Sisters List & Recognizer
-const MANAGEMENT_NAMES = ['SR GIRSELA', 'SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
+const MANAGEMENT_NAMES = ['SR JANICE', 'DR SR PREMA KUMARI', 'SR KASLIN', 'SR SHYMOL SEBASTIAN'];
 const isMgmtSister = (e) => {
   if (!e) return false;
   if (e.stream === 'Management' || e.department === 'Management' || e.category === 'Management') return true;
@@ -132,8 +132,11 @@ const DataProvider = {
       }
     }
 
+    // Filter out SR GIRSELA (sl_no: 56)
+    list = (list || []).filter(f => f.sl_no !== 56 && f.name !== 'SR GIRSELA');
+
     // Ensure Management members from bundled data are present even if not yet inserted into DB
-    const bundledMgmt = (window.FACULTY_MASTER_DATA || []).filter(s => s.category === 'Management');
+    const bundledMgmt = (window.FACULTY_MASTER_DATA || []).filter(s => s.category === 'Management' && s.sl_no !== 56 && s.name !== 'SR GIRSELA');
     if (bundledMgmt.length > 0) {
       const existingSlNos = new Set(list.map(s => s.sl_no));
       bundledMgmt.forEach(m => {
@@ -153,6 +156,23 @@ const DataProvider = {
         updated.stream_code = 'INTER';
         updated.category = 'Intermediate Teaching';
         updated.color = 'WHITE';
+      }
+      // Management Sisters stream assignments
+      if (updated.sl_no === 57 || updated.name === 'SR JANICE') {
+        updated.stream_code = 'DEGREE';
+        updated.category = 'Management';
+      }
+      if (updated.sl_no === 58 || updated.name === 'DR SR PREMA KUMARI') {
+        updated.stream_code = 'DEGREE';
+        updated.category = 'Management';
+      }
+      if (updated.sl_no === 59 || updated.name === 'SR KASLIN') {
+        updated.stream_code = 'INTER';
+        updated.category = 'Management';
+      }
+      if (updated.sl_no === 60 || updated.name === 'SR SHYMOL SEBASTIAN') {
+        updated.stream_code = 'DEGREE';
+        updated.category = 'Management';
       }
       return updated;
     });
@@ -230,10 +250,15 @@ const DataProvider = {
     const cleanId = (actor.staff_id || phone || '').trim().toUpperCase();
 
     // 0. HARD ENFORCEMENT: Strictly enforce mandatory 100% completion of wing colleagues
+    const isMgmt = isMgmtSister(actor) || actor.isManagement || actor.category === 'Management';
     let minRequired = 0;
-    if (actor.stream === 'Degree') minRequired = 31;
-    else if (actor.stream === 'Intermediate') minRequired = 22;
-    else if (actor.stream === 'Management' || actor.stream === 'Both') minRequired = 55;
+    if (isMgmt) {
+      minRequired = (actor.stream === 'Intermediate' || actor.stream === 'INTER') ? 23 : 32;
+    } else {
+      if (actor.stream === 'Degree') minRequired = 31;
+      else if (actor.stream === 'Intermediate') minRequired = 22;
+      else if (actor.stream === 'Management' || actor.stream === 'Both') minRequired = 55;
+    }
 
     const submittedCount = evaluations ? evaluations.length : 0;
     if (submittedCount < minRequired) {
